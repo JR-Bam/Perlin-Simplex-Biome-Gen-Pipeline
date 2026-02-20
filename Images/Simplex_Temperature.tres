@@ -1,0 +1,19 @@
+[gd_resource type="SimplexTexture" load_steps=2 format=3 uid="uid://dljdmvql0yewy"]
+
+[sub_resource type="Simplex" id="Simplex_58qch"]
+seed = 10
+frequency = 0.0028
+fractal_type = 2
+fractal_octaves = 8
+fractal_lacunarity = 2.16
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_type = 0
+domain_warp_amplitude = 30.0
+domain_warp_frequency = 0.05
+domain_warp_fractal_type = 0
+
+[resource]
+noise = SubResource("Simplex_58qch")
+width = 1000
+height = 1000

@@ -7,4 +7,4 @@ script = ExtResource("1_wurno")
 noise_type = 0
 subdivisions = 256
 size = 1000
-amplitude = 100
+amplitude = 50

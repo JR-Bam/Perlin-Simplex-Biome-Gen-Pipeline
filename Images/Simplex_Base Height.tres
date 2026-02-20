@@ -1,8 +1,8 @@
 [gd_resource type="SimplexTexture" load_steps=2 format=3 uid="uid://bej0u0kc71tk1"]
 
-[sub_resource type="Simplex" id="Simplex_0grkf"]
+[sub_resource type="Simplex" id="Simplex_l2ig0"]
 seed = 79
-frequency = 0.0031
+frequency = 0.0016
 fractal_type = 1
 fractal_octaves = 8
 fractal_lacunarity = 2.0
@@ -17,6 +17,6 @@ domain_warp_lacunarity = 6.0
 domain_warp_gain = 0.5
 
 [resource]
-noise = SubResource("Simplex_0grkf")
-width = 500
-height = 500
+noise = SubResource("Simplex_l2ig0")
+width = 1000
+height = 1000

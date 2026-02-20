@@ -1,0 +1,53 @@
+[gd_scene load_steps=7 format=3 uid="uid://djgxj6nbblsuw"]
+
+[ext_resource type="Script" path="res://Climate Maps/humidity.gd" id="1_2pmwq"]
+[ext_resource type="Resource" uid="uid://dmbu6q5fg7l1m" path="res://Climate Maps/climate_data.tres" id="2_jp6k2"]
+
+[sub_resource type="Simplex" id="Simplex_llqy8"]
+seed = 867
+frequency = 0.0028
+fractal_type = 2
+fractal_octaves = 5
+fractal_lacunarity = 2.0
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_type = 0
+domain_warp_amplitude = 70.0
+domain_warp_frequency = 0.1478
+domain_warp_fractal_type = 1
+domain_warp_octaves = 5
+domain_warp_lacunarity = 6.0
+domain_warp_gain = 0.5
+
+[sub_resource type="SimplexTexture" id="SimplexTexture_kacna"]
+noise = SubResource("Simplex_llqy8")
+width = 1000
+height = 1000
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_0ibto"]
+noise_type = 3
+seed = 67
+frequency = 0.0028
+fractal_type = 2
+domain_warp_enabled = true
+domain_warp_type = 2
+domain_warp_amplitude = 100.0
+domain_warp_fractal_lacunarity = 6.23
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_225gn"]
+width = 1000
+height = 1000
+noise = SubResource("FastNoiseLite_0ibto")
+
+[node name="Humidity" type="Node2D"]
+script = ExtResource("1_2pmwq")
+Data = ExtResource("2_jp6k2")
+auto_update = true
+
+[node name="Simplex" type="Sprite2D" parent="."]
+position = Vector2(500, 500)
+texture = SubResource("SimplexTexture_kacna")
+
+[node name="Perlin" type="Sprite2D" parent="."]
+position = Vector2(1550, 500)
+texture = SubResource("NoiseTexture2D_225gn")

@@ -28,13 +28,13 @@ domain_warp_gain = 0.5
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_qyelv"]
 noise_type = 3
 seed = 4
-frequency = 0.0207
+frequency = 0.0033
 fractal_type = 3
 domain_warp_enabled = true
 domain_warp_type = 2
 
 [sub_resource type="Simplex" id="Simplex_k0l7o"]
-frequency = 0.0086
+frequency = 0.0021
 fractal_type = 3
 fractal_octaves = 8
 fractal_lacunarity = 2.0
