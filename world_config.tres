@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3 uid="uid://dvcv8kbooya88"]
+
+[ext_resource type="Script" path="res://main.gd" id="1_wurno"]
+
+[resource]
+script = ExtResource("1_wurno")
+noise_type = 0
+subdivisions = 256
+size = 1000
+amplitude = 100
