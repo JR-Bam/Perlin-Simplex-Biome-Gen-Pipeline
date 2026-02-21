@@ -13,7 +13,10 @@ enum CombinationMethod {
 	RIDGES                   # Erosion emphasizes ridges
 }
 
-var Data: ElevationData = load("res://Terrain Maps/elevation_data.tres")
+var Climate: ClimateData = load("res://Climate Maps/climate_data.tres")
+var Elevation: ElevationData = load("res://Terrain Maps/elevation_data.tres")
+
+var shader: Shader = load("res://terrain_painter.gdshader")
 
 var terrain: MeshInstance3D
 var mesh: ArrayMesh
@@ -119,6 +122,7 @@ func generate_terrain():
 	surface_tool.commit(mesh)
 	
 	# Optional: Generate collision
+	textureize(size)
 	create_collision()
 	
 	print(Config.noise_type, " Terrain Generated")
@@ -179,6 +183,38 @@ func create_collision():
 	collision.shape = collision_shape
 	static_body.position = terrain.position
 
+func textureize(size):
+	var elevation = _noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin
+	)
+	var temperature = _noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin
+	)
+	var precipitation = _noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.precipitation_simplex if Config.noise_type == 0 else Climate.precipitation_perlin
+	)
+	var humidity = _noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.humidity_simplex if Config.noise_type == 0 else Climate.humidity_perlin
+	)
+	
+	var shadermat := ShaderMaterial.new()
+	shadermat.shader = shader
+	shadermat.set_shader_parameter("elevation_map", elevation)
+	shadermat.set_shader_parameter("temperature_map", temperature)
+	shadermat.set_shader_parameter("precipitation_map", precipitation)
+	shadermat.set_shader_parameter("humidity_map", humidity)
+	terrain.set_surface_override_material(0, shadermat)
+
+func _noise_to_texture(size, texture, noise):
+	texture.set_width(size)
+	texture.set_height(size)
+	texture.set_noise(noise)
+	return texture
+
 func regenerate():
 	print("Regenerating terrain with method: ", CombinationMethod.keys()[combination_method])
 	if mesh:
@@ -186,7 +222,7 @@ func regenerate():
 	generate_terrain()
 
 func get_base_noise() -> Variant:
-	return Data.base_simplex if Config.noise_type == 0 else Data.base_perlin
+	return Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin
 
 func get_erosion_noise() -> Variant:
-	return Data.erosion_simplex if Config.noise_type == 0 else Data.erosion_perlin
+	return Elevation.erosion_simplex if Config.noise_type == 0 else Elevation.erosion_perlin

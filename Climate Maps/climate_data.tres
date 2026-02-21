@@ -5,23 +5,22 @@
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_0ibto"]
 noise_type = 3
 seed = 67
-frequency = 0.0028
+frequency = 0.0002
 fractal_type = 2
 domain_warp_enabled = true
 domain_warp_type = 2
-domain_warp_amplitude = 100.0
 domain_warp_fractal_lacunarity = 6.23
 
 [sub_resource type="Simplex" id="Simplex_llqy8"]
 seed = 867
-frequency = 0.0028
+frequency = 0.0002
 fractal_type = 2
 fractal_octaves = 5
 fractal_lacunarity = 2.0
 fractal_gain = 0.5
 domain_warp_enabled = true
 domain_warp_type = 0
-domain_warp_amplitude = 70.0
+domain_warp_amplitude = 30.0
 domain_warp_frequency = 0.1478
 domain_warp_fractal_type = 1
 domain_warp_octaves = 5
@@ -31,7 +30,7 @@ domain_warp_gain = 0.5
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_x8af4"]
 noise_type = 3
 seed = 6
-frequency = 0.0028
+frequency = 0.0002
 fractal_type = 2
 fractal_lacunarity = 2.27
 domain_warp_enabled = true
@@ -40,15 +39,15 @@ domain_warp_amplitude = 70.0
 
 [sub_resource type="Simplex" id="Simplex_aa140"]
 seed = 7
-frequency = 0.0028
+frequency = 0.0002
 fractal_type = 2
 fractal_octaves = 8
 fractal_lacunarity = 2.27
 fractal_gain = 0.5
 domain_warp_enabled = true
 domain_warp_type = 0
-domain_warp_amplitude = 100.0
-domain_warp_frequency = 0.119
+domain_warp_amplitude = 30.0
+domain_warp_frequency = 0.05
 domain_warp_fractal_type = 1
 domain_warp_octaves = 5
 domain_warp_lacunarity = 6.0
@@ -57,13 +56,13 @@ domain_warp_gain = 0.5
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_0fbap"]
 noise_type = 3
 seed = 3
-frequency = 0.0028
+frequency = 0.0002
 domain_warp_enabled = true
 domain_warp_type = 2
 
 [sub_resource type="Simplex" id="Simplex_58qch"]
-seed = 10
-frequency = 0.0028
+seed = 13
+frequency = 0.0002
 fractal_type = 2
 fractal_octaves = 8
 fractal_lacunarity = 2.16
