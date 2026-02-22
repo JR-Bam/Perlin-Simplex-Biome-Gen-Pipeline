@@ -23,27 +23,17 @@ var mesh: ArrayMesh
 
 @export var Config: WorldConfigResource = load("res://world_config.tres")
 
-@export var combination_method: CombinationMethod = CombinationMethod.SLOPE_BASED:
-	set(value):
-		combination_method = value
-		if Engine.is_editor_hint() or is_inside_tree():
-			regenerate()
+@export var combination_method: CombinationMethod = CombinationMethod.SLOPE_BASED
 
-@export var erosion_strength: float = 0.4:
-	set(value):
-		erosion_strength = value
-		if Engine.is_editor_hint() or is_inside_tree():
-			regenerate()
+@export var erosion_strength: float = 0.4
 
-@export var blend_weight: float = 0.7:
-	set(value):
-		blend_weight = clamp(value, 0.0, 1.0)
-		if Engine.is_editor_hint() or is_inside_tree():
-			regenerate()
+@export var blend_weight: float = 0.7
 
-@export var terrace_count: int = 5:
+@export var terrace_count: int = 5
+
+@export var update = true:
 	set(value):
-		terrace_count = max(2, value)
+		update = value
 		if Engine.is_editor_hint() or is_inside_tree():
 			regenerate()
 
@@ -184,10 +174,7 @@ func create_collision():
 	static_body.position = terrain.position
 
 func textureize(size):
-	var elevation = _noise_to_texture(size, 
-		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin
-	)
+	var elevation = _combine_elevation_with_erosion(size, get_base_noise(), get_erosion_noise())
 	var temperature = _noise_to_texture(size, 
 		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
 		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin
@@ -207,7 +194,42 @@ func textureize(size):
 	shadermat.set_shader_parameter("temperature_map", temperature)
 	shadermat.set_shader_parameter("precipitation_map", precipitation)
 	shadermat.set_shader_parameter("humidity_map", humidity)
+	shadermat.set_shader_parameter("max_height", Config.amplitude)
 	terrain.set_surface_override_material(0, shadermat)
+
+
+func _combine_elevation_with_erosion(size: int, base_noise, erosion_noise) -> ImageTexture:
+	var image := Image.create(size, size, false, Image.FORMAT_RF)
+	
+	# Use the same step and offset as in generate_terrain()
+	var step = Config.size / float(Config.subdivisions)
+	var half_size = Config.size / 2.0
+
+	for x in range(size):
+		for y in range(size):
+			# Map pixel to world coordinates (x → world_x, y → world_z)
+			var world_x = (x - Config.subdivisions / 2.0) * step
+			var world_z = (y - Config.subdivisions / 2.0) * step
+
+			# Get raw noise values (range -1..1)
+			var base_val = base_noise.get_noise_2d(world_x, world_z)
+			var erosion_val = erosion_noise.get_noise_2d(world_x, world_z)
+
+			# Combine using the same method and parameters as the terrain
+			var height = combine_terrain(
+				base_val,
+				erosion_val,
+				world_x,
+				world_z,
+				Config.amplitude
+			)
+
+			# Normalize to 0..1 for the texture
+			var normalized = (height + Config.amplitude) / (2.0 * Config.amplitude)
+			normalized = clamp(normalized, 0.0, 1.0)
+			image.set_pixel(x, y, Color(normalized, normalized, normalized))
+
+	return ImageTexture.create_from_image(image)
 
 func _noise_to_texture(size, texture, noise):
 	texture.set_width(size)
