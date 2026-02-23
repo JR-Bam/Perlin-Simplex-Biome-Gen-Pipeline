@@ -14,3 +14,11 @@ config/name="Perlin Simplex Biome Gen Pipeline"
 run/main_scene="res://Terrain Maps/BaseHeight.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/proton_scatter/plugin.cfg")
+
+[filesystem]
+
+import/blender/enabled=false
