@@ -1,3 +1,59 @@
-[gd_scene format=3 uid="uid://c3jkn5h047q8f"]
+[gd_scene load_steps=12 format=3 uid="uid://c3jkn5h047q8f"]
+
+[ext_resource type="Script" path="res://addons/SunshineVolumetricClouds/CloudsController.gd" id="1_fh5pa"]
+[ext_resource type="Texture2D" uid="uid://rjbn3mellhc1" path="res://addons/SunshineVolumetricClouds/HeightWeightGradient.tres" id="2_wcx0a"]
+[ext_resource type="NoiseTexture3D" uid="uid://beujfcx2u0pqg" path="res://addons/SunshineVolumetricClouds/BaseNoiseTexture.tres" id="3_bamfu"]
+[ext_resource type="NoiseTexture3D" uid="uid://dt4lbhlv68dai" path="res://addons/SunshineVolumetricClouds/BaseNoiseDetailTexture.tres" id="4_xd0u8"]
+[ext_resource type="NoiseTexture3D" uid="uid://duqxdvvkivpvw" path="res://addons/SunshineVolumetricClouds/BaseNoiseLargeScaleTexture.tres" id="5_t8n11"]
+[ext_resource type="PackedScene" uid="uid://dtx2joekhcyfx" path="res://Terrain.tscn" id="6_xvm0r"]
+[ext_resource type="Material" uid="uid://cuhyottjxt7xb" path="res://addons/SunshineVolumetricClouds/CloudsMatHighQuality.tres" id="7_pnsqc"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_32j78"]
+sun_angle_max = 360.0
+
+[sub_resource type="Sky" id="Sky_4hbe1"]
+sky_material = SubResource("ProceduralSkyMaterial_32j78")
+
+[sub_resource type="Environment" id="Environment_55tdv"]
+background_mode = 2
+sky = SubResource("Sky_4hbe1")
+fog_density = 0.003
+
+[sub_resource type="QuadMesh" id="QuadMesh_iqgin"]
+lightmap_size_hint = Vector2i(50002, 50002)
+material = ExtResource("7_pnsqc")
+size = Vector2(10000, 10000)
 
 [node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_55tdv")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.00159923, 0.00114699, 0.0003562, 0.000472359, -0.00114603, 0.00156955, 0.00110424, -0.00117091, -0.00118728, 0, 0.619106, 0.0413018)
+light_color = Color(0.866279, 0.946515, 0.9751, 1)
+light_angular_distance = 21.95
+directional_shadow_mode = 0
+
+[node name="CloudsController" type="Node" parent="." node_paths=PackedStringArray("sunLight", "worldEnvironment")]
+script = ExtResource("1_fh5pa")
+updateConstantly = true
+sunLight = NodePath("../DirectionalLight3D")
+worldEnvironment = NodePath("../WorldEnvironment")
+gradientControlTexture = ExtResource("2_wcx0a")
+baseNoiseTexture = ExtResource("3_bamfu")
+detailNoiseTexture = ExtResource("4_xd0u8")
+largeScaleNoiseTexture = ExtResource("5_t8n11")
+windDirection = Vector2(2, 2)
+cloudsCutoff = 0.58
+cloudsFloor = 100.0
+globalCloudScale = 5000.0
+sunColorDefault = Color(0.866279, 0.946515, 0.9751, 1)
+useFogDefault = false
+fogColorDefault = Color(0.518, 0.553, 0.608, 1)
+
+[node name="Terrain" parent="." instance=ExtResource("6_xvm0r")]
+
+[node name="Clouds" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, 0)
+mesh = SubResource("QuadMesh_iqgin")

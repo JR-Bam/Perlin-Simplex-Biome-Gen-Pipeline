@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://c0hg0cqh8neyr"]
+
+[ext_resource type="Script" path="res://addons/SunshineVolumetricClouds/CloudsController.gd" id="1_825gn"]
+[ext_resource type="Texture2D" uid="uid://rjbn3mellhc1" path="res://addons/SunshineVolumetricClouds/HeightWeightGradient.tres" id="2_yk272"]
+[ext_resource type="NoiseTexture3D" uid="uid://beujfcx2u0pqg" path="res://addons/SunshineVolumetricClouds/BaseNoiseTexture.tres" id="3_5gk62"]
+[ext_resource type="NoiseTexture3D" uid="uid://dt4lbhlv68dai" path="res://addons/SunshineVolumetricClouds/BaseNoiseDetailTexture.tres" id="4_qthgu"]
+[ext_resource type="NoiseTexture3D" uid="uid://duqxdvvkivpvw" path="res://addons/SunshineVolumetricClouds/BaseNoiseLargeScaleTexture.tres" id="5_o4ms7"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_t6fg8"]
+sun_angle_max = 360.0
+
+[sub_resource type="Sky" id="Sky_fnfc2"]
+sky_material = SubResource("ProceduralSkyMaterial_t6fg8")
+
+[sub_resource type="Environment" id="Environment_qbdne"]
+background_mode = 2
+sky = SubResource("Sky_fnfc2")
+fog_enabled = true
+fog_light_color = Color(0.545098, 0.584314, 0.607843, 1)
+fog_density = 0.003
+
+[node name="Clouds" type="Node3D"]
+transform = Transform3D(500, 0, 0, 0, 500, 0, 0, 0, 500, 108.509, 113.525, 41.5375)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_qbdne")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.00194323, -0.000293927, 0.000370754, 0.000472775, -0.0011456, 0.00156974, -1.8328e-05, 0.00161283, 0.00118256, 0, 0.619106, 0.0413018)
+light_color = Color(1, 0.729412, 0.619608, 1)
+directional_shadow_mode = 0
+
+[node name="CloudsController" type="Node" parent="." node_paths=PackedStringArray("sunLight", "worldEnvironment")]
+script = ExtResource("1_825gn")
+updateConstantly = true
+sunLight = NodePath("../DirectionalLight3D")
+worldEnvironment = NodePath("../WorldEnvironment")
+gradientControlTexture = ExtResource("2_yk272")
+baseNoiseTexture = ExtResource("3_5gk62")
+detailNoiseTexture = ExtResource("4_qthgu")
+largeScaleNoiseTexture = ExtResource("5_o4ms7")
+windDirection = Vector2(2, 2)
+cloudsCutoff = 0.441
+cloudsFloor = 200.0
+detailNoisePower = 1.388
+sunColorDefault = Color(1, 0.729412, 0.619608, 1)
+fogColorDefault = Color(0.545098, 0.584314, 0.607843, 1)
