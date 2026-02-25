@@ -7,7 +7,6 @@ uniform sampler2D humidity_map;
 
 // Biome Colors Representation - High Contrast Version
 uniform vec3 ocean_color = vec3(0.02, 0.15, 0.45);            // Rich Navy
-uniform vec3 lake_color = vec3(0.0, 0.6, 0.9);                // Vibrant Cyan
 uniform vec3 desert_color = vec3(1.0, 0.85, 0.3);             // Bright Gold
 uniform vec3 grassland_color = vec3(0.4, 0.85, 0.1);          // Lime Green
 uniform vec3 savanna_color = vec3(0.8, 0.6, 0.2);             // Burnt Orange/Ochre
@@ -32,16 +31,6 @@ uniform float ocean_p_min = 0.0;
 uniform float ocean_p_max = 1.0;
 uniform float ocean_h_min = 0.0;
 uniform float ocean_h_max = 1.0;
-
-// LAKE: High humidity/precip low-lands
-uniform float lake_e_min = 0.0;
-uniform float lake_e_max = 0.25;
-uniform float lake_t_min = 0.0;
-uniform float lake_t_max = 1.0;
-uniform float lake_p_min = 0.65;
-uniform float lake_p_max = 1.0;
-uniform float lake_h_min = 0.65;
-uniform float lake_h_max = 1.0;
 
 // TUNDRA: Cold, now prefers higher altitudes (0.4-0.9 elevation)
 uniform float tundra_e_min = 0.4;      // Raised min elevation
@@ -139,8 +128,8 @@ uniform vec3 alpine_tundra_color = vec3(0.75, 0.8, 0.9);
 uniform float blend_radius = 0.05;
 uniform bool debug_mode = false;
 
-// Number of biomes (now 11 with Alpine Tundra)
-const int biome_count = 11;
+// Number of biomes 
+const int biome_count = 10;
 
 void fragment(){
 	float elevation = texture(elevation_map, UV).r;
@@ -154,61 +143,61 @@ void fragment(){
 	precipitation = clamp(precipitation, 0.0, 1.0);
 	humidity = clamp(humidity, 0.0, 1.0);
 
-	vec3 colors[11] = vec3[11](
-		ocean_color, lake_color, desert_color, grassland_color, savanna_color,
+	vec3 colors[10] = vec3[10](
+		ocean_color, desert_color, grassland_color, savanna_color,
 		tundra_color, boreal_forest_color, temperate_forest_color,
 		rainforest_color, mountain_color, alpine_tundra_color
 	);
 
-	float min_e[11] = float[11](
-		ocean_e_min, lake_e_min, desert_e_min, grassland_e_min, savanna_e_min,
+	float min_e[10] = float[10](
+		ocean_e_min, desert_e_min, grassland_e_min, savanna_e_min,
 		tundra_e_min, boreal_forest_e_min, temperate_forest_e_min,
 		rainforest_e_min, mountain_e_min, alpine_tundra_e_min
 	);
 
-	float max_e[11] = float[11](
-		ocean_e_max, lake_e_max, desert_e_max, grassland_e_max, savanna_e_max,
+	float max_e[10] = float[10](
+		ocean_e_max, desert_e_max, grassland_e_max, savanna_e_max,
 		tundra_e_max, boreal_forest_e_max, temperate_forest_e_max,
 		rainforest_e_max, mountain_e_max, alpine_tundra_e_max
 	);
 
-	float min_t[11] = float[11](
-		ocean_t_min, lake_t_min, desert_t_min, grassland_t_min, savanna_t_min,
+	float min_t[10] = float[10](
+		ocean_t_min, desert_t_min, grassland_t_min, savanna_t_min,
 		tundra_t_min, boreal_forest_t_min, temperate_forest_t_min,
 		rainforest_t_min, mountain_t_min, alpine_tundra_t_min
 	);
 
-	float max_t[11] = float[11](
-		ocean_t_max, lake_t_max, desert_t_max, grassland_t_max, savanna_t_max,
+	float max_t[10] = float[10](
+		ocean_t_max, desert_t_max, grassland_t_max, savanna_t_max,
 		tundra_t_max, boreal_forest_t_max, temperate_forest_t_max,
 		rainforest_t_max, mountain_t_max, alpine_tundra_t_max
 	);
 
-	float min_p[11] = float[11](
-		ocean_p_min, lake_p_min, desert_p_min, grassland_p_min, savanna_p_min,
+	float min_p[10] = float[10](
+		ocean_p_min, desert_p_min, grassland_p_min, savanna_p_min,
 		tundra_p_min, boreal_forest_p_min, temperate_forest_p_min,
 		rainforest_p_min, mountain_p_min, alpine_tundra_p_min
 	);
 
-	float max_p[11] = float[11](
-		ocean_p_max, lake_p_max, desert_p_max, grassland_p_max, savanna_p_max,
+	float max_p[10] = float[10](
+		ocean_p_max, desert_p_max, grassland_p_max, savanna_p_max,
 		tundra_p_max, boreal_forest_p_max, temperate_forest_p_max,
 		rainforest_p_max, mountain_p_max, alpine_tundra_p_max
 	);
 
-	float min_h[11] = float[11](
-		ocean_h_min, lake_h_min, desert_h_min, grassland_h_min, savanna_h_min,
+	float min_h[10] = float[10](
+		ocean_h_min, desert_h_min, grassland_h_min, savanna_h_min,
 		tundra_h_min, boreal_forest_h_min, temperate_forest_h_min,
 		rainforest_h_min, mountain_h_min, alpine_tundra_h_min
 	);
 
-	float max_h[11] = float[11](
-		ocean_h_max, lake_h_max, desert_h_max, grassland_h_max, savanna_h_max,
+	float max_h[10] = float[10](
+		ocean_h_max, desert_h_max, grassland_h_max, savanna_h_max,
 		tundra_h_max, boreal_forest_h_max, temperate_forest_h_max,
 		rainforest_h_max, mountain_h_max, alpine_tundra_h_max
 	);
 
-	float weights[11];
+	float weights[10];
 	bool any_biome_active = false;
 
 	// Add elevation bias for tundra (index 5) to further emphasize high altitude preference
