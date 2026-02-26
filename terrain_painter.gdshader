@@ -21,6 +21,18 @@ uniform vec3 alpine_tundra_color = vec3(0.75, 0.8, 0.9);      // Light gray-blue
 uniform vec3 gap_color_1 = vec3(1.0, 0.0, 1.0);               // Magenta - should not appear
 uniform vec3 gap_color_2 = vec3(1.0, 1.0, 0.0);               // Yellow - debug
 
+// Biome Textures
+uniform sampler2D ocean_texture;
+uniform sampler2D desert_texture;
+uniform sampler2D grassland_texture;
+uniform sampler2D savanna_texture;
+uniform sampler2D tundra_texture;
+uniform sampler2D boreal_forest_texture;
+uniform sampler2D temperate_forest_texture;
+uniform sampler2D rainforest_texture;
+uniform sampler2D mountain_texture;
+uniform sampler2D alpine_tundra_texture;
+
 // All thresholds are normalized between 0 and 1.
 // They are adjusted to ensure the entire 4‑dimensional space [0,1]⁴ is covered.
 // The lake biome has been removed.
@@ -127,12 +139,66 @@ uniform float alpine_tundra_h_max = 1.0;
 
 uniform float blend_radius = 0.05;
 uniform bool debug_mode = false;
+uniform float texture_scale = 50.0;
 
 // Number of biomes (lake removed)
 const int biome_count = 10;
 
+// Helper function to get texture color by biome index
+vec3 get_biome_texture(int biome_index, vec2 uv) {
+	// Scale UVs to tile the texture
+	vec2 scaled_uv = uv * texture_scale;
+	
+	if (biome_index == 0) {
+		return texture(ocean_texture, scaled_uv).rgb;
+	} else if (biome_index == 1) {
+		return texture(desert_texture, scaled_uv).rgb;
+	} else if (biome_index == 2) {
+		return texture(grassland_texture, scaled_uv).rgb;
+	} else if (biome_index == 3) {
+		return texture(savanna_texture, scaled_uv).rgb;
+	} else if (biome_index == 4) {
+		return texture(tundra_texture, scaled_uv).rgb;
+	} else if (biome_index == 5) {
+		return texture(boreal_forest_texture, scaled_uv).rgb;
+	} else if (biome_index == 6) {
+		return texture(temperate_forest_texture, scaled_uv).rgb;
+	} else if (biome_index == 7) {
+		return texture(rainforest_texture, scaled_uv).rgb;
+	} else if (biome_index == 8) {
+		return texture(mountain_texture, scaled_uv).rgb;
+	} else {
+		return texture(alpine_tundra_texture, scaled_uv).rgb;
+	}
+}
+
+// Helper function to get fallback color by biome index
+vec3 get_biome_color(int biome_index) {
+	if (biome_index == 0) {
+		return ocean_color;
+	} else if (biome_index == 1) {
+		return desert_color;
+	} else if (biome_index == 2) {
+		return grassland_color;
+	} else if (biome_index == 3) {
+		return savanna_color;
+	} else if (biome_index == 4) {
+		return tundra_color;
+	} else if (biome_index == 5) {
+		return boreal_forest_color;
+	} else if (biome_index == 6) {
+		return temperate_forest_color;
+	} else if (biome_index == 7) {
+		return rainforest_color;
+	} else if (biome_index == 8) {
+		return mountain_color;
+	} else {
+		return alpine_tundra_color;
+	}
+}
+
 void fragment(){
-	    // Convert view-space VERTEX to world space
+	// Convert view-space VERTEX to world space
     vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
     float height = world_pos.y;
 
@@ -205,6 +271,8 @@ void fragment(){
 
 	float weights[10];
 	bool any_biome_active = false;
+	int dominant_biome = 0;
+	float dominant_weight = 0.0;
 
 	// Add elevation bias for tundra (index 5) to further emphasize high altitude preference
 	float tundra_elevation_bias = 1.0;
@@ -266,7 +334,25 @@ void fragment(){
 				weights[i] *= tundra_elevation_bias;
 			}
 		}
+		
+		// Biome dominance calculations for texturing
+		if (weights[i] > dominant_weight) {
+			dominant_weight = weights[i];
+			dominant_biome = i;
+		}
 	}
+	
+	// Get the texture and color for the dominant biome
+	vec3 biome_texture = get_biome_texture(dominant_biome, UV);
+	vec3 biome_fallback = get_biome_color(dominant_biome);
+	
+	// Use texture if not black, otherwise use fallback color
+	vec3 final_color = biome_texture;
+	if (biome_texture == vec3(0.0)) {
+		final_color = biome_fallback;
+	}
+	
+	ALBEDO.rgb = final_color;
 
 	// If no biomes are active, use fallback system
 	if (!any_biome_active) {
@@ -324,36 +410,40 @@ void fragment(){
 			}
 
 			// Use the closest biome with reduced opacity to indicate it's a gap
-			ALBEDO.rgb = colors[best_index] * 0.7; // Slightly dimmed to indicate fallback
+			vec3 fallback_texture = get_biome_texture(best_index, UV);
+			vec3 fallback_color = get_biome_color(best_index);
+			if (fallback_texture == vec3(0.0)) {
+				ALBEDO.rgb = fallback_color * 0.7;
+			} else {
+				ALBEDO.rgb = fallback_texture * 0.7;
+			}
 		}
 
 	} else {
-
-		// Normalize weights
+		// Blend textures based on weights for smooth transitions
+		vec3 blended_albedo = vec3(0.0);
+		
+		// Normalize weights first
 		float total_weight = 0.0;
 		for (int i = 0; i < biome_count; i++){
 			total_weight += weights[i];
 		}
-
-		// Only normalize if we have positive weights
+		
 		if (total_weight > 0.001) {
 			for (int i = 0; i < biome_count; i++){
 				weights[i] /= total_weight;
 			}
-		} else {
-			// Fallback if weights sum to near zero
-			for (int i = 0; i < biome_count; i++){
-				weights[i] = 0.0;
-			}
-			weights[0] = 1.0; // Default to ocean
 		}
-
-		// Blend colors based on weights
-		vec3 blended_color = vec3(0.0);
+		
+		// Blend all biome textures based on their weights
 		for (int i = 0; i < biome_count; i++){
-			blended_color += colors[i] * weights[i];
+			if (weights[i] > 0.0) {
+				vec3 tex = get_biome_texture(i, UV);
+				vec3 col = get_biome_color(i);
+				vec3 final_tex = (tex == vec3(0.0)) ? col : tex;
+				blended_albedo += final_tex * weights[i];
+			}
 		}
-
-		ALBEDO.rgb = blended_color;
+		ALBEDO.rgb = blended_albedo;
 	}
 }
