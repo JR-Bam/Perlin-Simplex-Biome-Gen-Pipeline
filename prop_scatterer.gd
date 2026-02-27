@@ -4,6 +4,9 @@ extends Node3D
 class_name BiomeScatterer
 
 var Config: WorldConfigResource = load("res://world_config.tres")
+var temp_img: Image
+var hum_img: Image
+var precip_img: Image
 
 # Prop data structure
 class BiomeProp:
@@ -46,10 +49,11 @@ var boreal_forest_p_max = Config.boreal_forest_p_max
 
 func test_biome_scatter():
 	# Clear previous assets
-	var old_container = get_node_or_null("BoreaForestScatter")
+	var old_container = get_node_or_null("BorealForestScatter")
 	if old_container:
 		old_container.queue_free()
 		print("Cleared previous boreal forest scatter")
+		await get_tree().process_frame
 	
 	if not terrain_mesh:
 		print("ERROR: No terrain mesh assigned!")
@@ -62,7 +66,7 @@ func test_biome_scatter():
 	print("=== Scattering Boreal Forest Assets ===")
 	
 	var scatter_container = Node3D.new()
-	scatter_container.name = "BoreaForestScatter"
+	scatter_container.name = "BorealForestScatter"
 	add_child(scatter_container)
 	
 	var shader_material = terrain_mesh.get_surface_override_material(0)
@@ -97,12 +101,33 @@ func test_biome_scatter():
 	var boreal_count = 0
 	var water_blocked = 0
 	
+	var shader_mat = shader_material as ShaderMaterial
+		
+	var temperature_tex = shader_mat.get_shader_parameter("temperature_map") as Texture2D
+	var humidity_tex = shader_mat.get_shader_parameter("humidity_map") as Texture2D
+	var precipitation_tex = shader_mat.get_shader_parameter("precipitation_map") as Texture2D
+	
+	
+	temp_img = temperature_tex.get_image()
+	hum_img = humidity_tex.get_image()
+	precip_img = precipitation_tex.get_image()
+	
+	if not temp_img or temp_img.is_empty():
+		print("ERROR: Temperature image is invalid!")
+		return
+	if not hum_img or hum_img.is_empty():
+		print("ERROR: Humidity image is invalid!")
+		return
+	if not precip_img or precip_img.is_empty():
+		print("ERROR: Precipitation image is invalid!")
+		return
+	
 	# Generate grid across terrain
 	var x = -terrain_size / 2.0
 	while x < terrain_size / 2.0:
 		var z = -terrain_size / 2.0
 		while z < terrain_size / 2.0:
-			if is_boreal_forest(x, z, shader_material):
+			if is_boreal_forest(x, z):
 				boreal_count += 1
 				
 				if randf() < base_spawn_density:
@@ -152,27 +177,12 @@ func select_weighted_prop(props: Array, total_proportionality: float) -> Diction
 	
 	return props[0]  # Fallback
 
-func is_boreal_forest(x: float, z: float, shader_material: Material) -> bool:
-	var shader_mat = shader_material as ShaderMaterial
-	if not shader_mat:
-		return false
-	
+func is_boreal_forest(x: float, z: float) -> bool:
 	var uv = Vector2(
 		(x + terrain_size / 2.0) / terrain_size,
 		(z + terrain_size / 2.0) / terrain_size
 	)
 	uv = uv.clamp(Vector2.ZERO, Vector2.ONE)
-	
-	var temperature_tex = shader_mat.get_shader_parameter("temperature_map") as Texture2D
-	var humidity_tex = shader_mat.get_shader_parameter("humidity_map") as Texture2D
-	var precipitation_tex = shader_mat.get_shader_parameter("precipitation_map") as Texture2D
-	
-	if not temperature_tex or not humidity_tex or not precipitation_tex:
-		return false
-	
-	var temp_img = temperature_tex.get_image()
-	var hum_img = humidity_tex.get_image()
-	var precip_img = precipitation_tex.get_image()
 	
 	var temp_pixel_x = int(uv.x * temp_img.get_width())
 	var temp_pixel_y = int(uv.y * temp_img.get_height())
