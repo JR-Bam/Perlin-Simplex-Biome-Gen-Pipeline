@@ -39,8 +39,8 @@ class BiomeProp:
 # Boreal forest thresholds
 var boreal_forest_t_min = Config.boreal_forest_t_min
 var boreal_forest_t_max = Config.boreal_forest_t_max
-var boreal_forest_e_min = Config.boreal_forest_e_min
-var boreal_forest_e_max = Config.boreal_forest_e_max
+var boreal_forest_h_min = Config.boreal_forest_h_min
+var boreal_forest_h_max = Config.boreal_forest_h_max
 var boreal_forest_p_min = Config.boreal_forest_p_min
 var boreal_forest_p_max = Config.boreal_forest_p_max
 
@@ -164,33 +164,33 @@ func is_boreal_forest(x: float, z: float, shader_material: Material) -> bool:
 	uv = uv.clamp(Vector2.ZERO, Vector2.ONE)
 	
 	var temperature_tex = shader_mat.get_shader_parameter("temperature_map") as Texture2D
-	var elevation_tex = shader_mat.get_shader_parameter("elevation_map") as Texture2D
+	var humidity_tex = shader_mat.get_shader_parameter("humidity_map") as Texture2D
 	var precipitation_tex = shader_mat.get_shader_parameter("precipitation_map") as Texture2D
 	
-	if not temperature_tex or not elevation_tex or not precipitation_tex:
+	if not temperature_tex or not humidity_tex or not precipitation_tex:
 		return false
 	
 	var temp_img = temperature_tex.get_image()
-	var elev_img = elevation_tex.get_image()
+	var hum_img = humidity_tex.get_image()
 	var precip_img = precipitation_tex.get_image()
 	
 	var temp_pixel_x = int(uv.x * temp_img.get_width())
 	var temp_pixel_y = int(uv.y * temp_img.get_height())
 	var temperature = temp_img.get_pixel(temp_pixel_x, temp_pixel_y).r
 	
-	var elev_pixel_x = int(uv.x * elev_img.get_width())
-	var elev_pixel_y = int(uv.y * elev_img.get_height())
-	var elevation = elev_img.get_pixel(elev_pixel_x, elev_pixel_y).r
+	var hum_pixel_x = int(uv.x * hum_img.get_width())
+	var hum_pixel_y = int(uv.y * hum_img.get_height())
+	var humidity = hum_img.get_pixel(hum_pixel_x, hum_pixel_y).r
 	
 	var precip_pixel_x = int(uv.x * precip_img.get_width())
 	var precip_pixel_y = int(uv.y * precip_img.get_height())
 	var precipitation = precip_img.get_pixel(precip_pixel_x, precip_pixel_y).r
 	
 	var in_temp = temperature >= boreal_forest_t_min and temperature <= boreal_forest_t_max
-	var in_elev = elevation >= boreal_forest_e_min and elevation <= boreal_forest_e_max
+	var in_hum = humidity >= boreal_forest_h_min and humidity <= boreal_forest_h_max
 	var in_precip = precipitation >= boreal_forest_p_min and precipitation <= boreal_forest_p_max
 	
-	return in_temp and in_elev and in_precip
+	return in_temp and in_hum and in_precip
 
 func sample_terrain_height(x: float, z: float) -> float:
 	if not is_inside_tree():
