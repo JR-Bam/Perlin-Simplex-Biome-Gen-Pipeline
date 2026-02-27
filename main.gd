@@ -5,6 +5,7 @@ class_name WorldConfigResource
 @export var subdivisions: int = 50
 @export var size: int = 500
 @export var amplitude := 100
+@export var blend_radius: float = 0.05
 
 # Biome Thresholds
 @export_group("Ocean Thresholds")
@@ -106,5 +107,3 @@ class_name WorldConfigResource
 @export_range(0.0, 1.0, 0.01) var alpine_tundra_p_max: float = 1.0
 @export_range(0.0, 1.0, 0.01) var alpine_tundra_h_min: float = 0.0
 @export_range(0.0, 1.0, 0.01) var alpine_tundra_h_max: float = 1.0
-
-@export var blend_radius: float = 0.05

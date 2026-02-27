@@ -137,9 +137,9 @@ uniform float alpine_tundra_p_max = 1.0;
 uniform float alpine_tundra_h_min = 0.0;
 uniform float alpine_tundra_h_max = 1.0;
 
-uniform float blend_radius = 0.05;
+uniform float blend_radius = 0.01;
 uniform bool debug_mode = false;
-uniform float texture_scale = 50.0;
+uniform float texture_scale = 200.0;
 
 // Number of biomes (lake removed)
 const int biome_count = 10;

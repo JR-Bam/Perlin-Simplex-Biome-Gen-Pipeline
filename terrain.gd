@@ -118,6 +118,19 @@ func generate_terrain():
 	print(Config.noise_type, " Terrain Generated")
 	print("Terrain generated with ", total_vertices, " vertices using method: ", CombinationMethod.keys()[combination_method])
 
+# Texture Setup for Shader
+func setup_biome_textures(shader_material: ShaderMaterial):
+	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "alpine_tundra"]
+	
+	for biome in biome_names:
+		var texture_path = "res://Assets/Materials/" + biome + ".tres"
+		var texture = load(texture_path) as Texture2D
+		
+		if texture:
+			shader_material.set_shader_parameter(biome + "_texture", texture)
+			print("Loaded texture for: ", biome)
+		else:
+			print("WARNING: Could not load texture for: ", biome, " from ", texture_path)
 
 func combine_terrain(base_value: float, erosion_value: float, x: float, z: float, amplitude: float) -> float:
 	match combination_method:
@@ -197,6 +210,7 @@ func textureize(size):
 	shadermat.set_shader_parameter("max_height", Config.amplitude)
 	
 	_set_biome_thresholds(shadermat, Config)
+	setup_biome_textures(shadermat)
 	
 	terrain.set_surface_override_material(0, shadermat)
 
