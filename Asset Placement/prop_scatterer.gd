@@ -1,38 +1,28 @@
 @tool
 extends Node3D
 
-class_name BiomeScatterer
+class_name PropScatterer
 
 var Config: WorldConfigResource = load("res://world_config.tres")
 var temp_img: Image
 var hum_img: Image
 var precip_img: Image
 
-# Prop data structure
-class BiomeProp:
-	var scene_path: String
-	var proportionality: float = 1.0
-	
-	func _init(p_path: String, p_proportionality: float = 1.0):
-		scene_path = p_path
-		proportionality = p_proportionality
-
 @export var terrain_mesh: MeshInstance3D
 @export var water_mesh: MeshInstance3D
 @export var terrain_size: int = Config.size
 @export var grid_spacing: float = 10.0
 @export var base_spawn_density: float = 0.2
+@export var boundary_margin: float = 0.1
 
 # Variance for natural placement
-@export var position_variance: float = 2.0  # Units of variance in X/Z
-@export var height_variance: float = 0.5    # Units of variance in Y
-@export var rotation_variance: float = 0.3  # Radians of variance
-@export var scale_variance: float = 0.1     # Percentage variance (0.1 = 10%)
+@export var position_variance: float = 2.0
+@export var height_variance: float = 0.5
+@export var rotation_variance: float = 0.3
+@export var scale_variance: float = 0.1
 
-# Boreal forest props
-@export var boreal_forest_props: Array[Dictionary] = [
-	{"scene_path": "res://addons/proton_scatter/demos/assets/pine_tree.tscn", "proportionality": 0.7},
-]
+# Boreal forest props - now using Resource array
+@export var boreal_forest_props: Array[BiomePropData] = []
 
 @export var test_spawn: bool = false:
 	set(_val):
@@ -63,6 +53,10 @@ func test_biome_scatter():
 		print("ERROR: No water mesh assigned!")
 		return
 	
+	if boreal_forest_props.is_empty():
+		print("ERROR: No boreal forest props assigned!")
+		return
+	
 	print("=== Scattering Boreal Forest Assets ===")
 	
 	var scatter_container = Node3D.new()
@@ -79,14 +73,13 @@ func test_biome_scatter():
 	# Load all prop scenes
 	var loaded_props = []
 	for prop_data in boreal_forest_props:
-		var scene = load(prop_data["scene_path"])
-		if scene:
-			loaded_props.append({
-				"scene": scene,
-				"proportionality": prop_data["proportionality"]
-			})
-		else:
-			print("WARNING: Could not load scene: ", prop_data["scene_path"])
+		if not prop_data.scene:
+			print("WARNING: Prop has no scene assigned!")
+			continue
+		loaded_props.append({
+			"scene": prop_data.scene,
+			"proportionality": prop_data.proportionality
+		})
 	
 	if loaded_props.is_empty():
 		print("ERROR: No valid props loaded!")
@@ -107,7 +100,6 @@ func test_biome_scatter():
 	var humidity_tex = shader_mat.get_shader_parameter("humidity_map") as Texture2D
 	var precipitation_tex = shader_mat.get_shader_parameter("precipitation_map") as Texture2D
 	
-	
 	temp_img = temperature_tex.get_image()
 	hum_img = humidity_tex.get_image()
 	precip_img = precipitation_tex.get_image()
@@ -122,16 +114,25 @@ func test_biome_scatter():
 		print("ERROR: Precipitation image is invalid!")
 		return
 	
-	# Generate grid across terrain
-	var x = -terrain_size / 2.0
-	while x < terrain_size / 2.0:
-		var z = -terrain_size / 2.0
-		while z < terrain_size / 2.0:
+	# Generate grid across terrain - constrain within bounds
+	var max_offset = terrain_size / 2.0 - (grid_spacing * boundary_margin)
+	var x = -max_offset
+	while x < max_offset:
+		var z = -max_offset
+		while z < max_offset:
 			if is_boreal_forest(x, z):
 				boreal_count += 1
 				
 				if randf() < base_spawn_density:
-					var height = sample_terrain_height(x, z)
+					# Apply XZ variance to offset from grid
+					var varied_x = x + randf_range(-position_variance, position_variance)
+					var varied_z = z + randf_range(-position_variance, position_variance)
+					
+					# Clamp to terrain bounds
+					varied_x = clamp(varied_x, -max_offset, max_offset)
+					varied_z = clamp(varied_z, -max_offset, max_offset)
+					
+					var height = sample_terrain_height(varied_x, varied_z)
 					
 					if height <= water_top:
 						water_blocked += 1
@@ -139,11 +140,8 @@ func test_biome_scatter():
 						# Select random prop based on proportionality
 						var selected_prop = select_weighted_prop(loaded_props, total_proportionality)
 						
-						# Apply variance
-						var final_pos = Vector3(x, height, z)
-						final_pos.x += randf_range(-position_variance, position_variance)
-						final_pos.y += randf_range(-height_variance, height_variance)
-						final_pos.z += randf_range(-position_variance, position_variance)
+						# Only apply small height variance (not full range)
+						var final_pos = Vector3(varied_x, height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
 						
 						var asset = selected_prop["scene"].instantiate()
 						asset.position = final_pos
@@ -175,7 +173,7 @@ func select_weighted_prop(props: Array, total_proportionality: float) -> Diction
 		if random_value <= cumulative:
 			return prop
 	
-	return props[0]  # Fallback
+	return props[0]
 
 func is_boreal_forest(x: float, z: float) -> bool:
 	var uv = Vector2(

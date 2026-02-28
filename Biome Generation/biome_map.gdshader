@@ -128,7 +128,7 @@ uniform vec3 alpine_tundra_color = vec3(0.75, 0.8, 0.9);
 uniform float blend_radius = 0.05;
 uniform bool debug_mode = false;
 
-// Number of biomes 
+// Number of biomes
 const int biome_count = 10;
 
 void fragment(){
