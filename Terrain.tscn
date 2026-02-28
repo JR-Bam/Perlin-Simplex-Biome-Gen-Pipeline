@@ -352,6 +352,8 @@ script = ExtResource("3_kfxex")
 terrain_mesh = NodePath("../MeshInstance3D")
 water_mesh = NodePath("../Water")
 terrain_size = 1000
+grid_spacing = 1.0
+base_spawn_density = 1.0
 boreal_forest_props = Array[ExtResource("4_qsfrc")]([SubResource("Resource_vd5td"), SubResource("Resource_rsv5k"), SubResource("Resource_wirpa")])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]

@@ -114,6 +114,9 @@ func test_biome_scatter():
 		print("ERROR: Precipitation image is invalid!")
 		return
 	
+	# Dictionary to store transforms for each prop type
+	var prop_instances: Dictionary = {}  # scene_path -> array of transforms
+	
 	# Generate grid across terrain - constrain within bounds
 	var max_offset = terrain_size / 2.0 - (grid_spacing * boundary_margin)
 	var x = -max_offset
@@ -143,26 +146,78 @@ func test_biome_scatter():
 						# Only apply small height variance (not full range)
 						var final_pos = Vector3(varied_x, height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
 						
-						var asset = selected_prop["scene"].instantiate()
-						asset.position = final_pos
-						
 						# Random rotation with variance
-						asset.rotation.y = randf() * TAU + randf_range(-rotation_variance, rotation_variance)
-						asset.rotation.x = randf_range(-rotation_variance, rotation_variance)
-						asset.rotation.z = randf_range(-rotation_variance, rotation_variance)
+						var rotation = Vector3(
+							randf_range(-rotation_variance, rotation_variance),
+							randf() * TAU + randf_range(-rotation_variance, rotation_variance),
+							randf_range(-rotation_variance, rotation_variance)
+						)
 						
 						# Random scale with variance
 						var scale_factor = 1.0 + randf_range(-scale_variance, scale_variance)
-						asset.scale = Vector3.ONE * scale_factor
+						var scale = Vector3.ONE * scale_factor
 						
-						scatter_container.add_child(asset)
+						# Create transform
+						var transform = Transform3D()
+						transform.origin = final_pos
+						transform.basis = Basis.from_euler(rotation).scaled(scale)
+						
+						# Store transform for this prop type
+						var scene_key = selected_prop["scene"].resource_path
+						if not prop_instances.has(scene_key):
+							prop_instances[scene_key] = []
+						prop_instances[scene_key].append(transform)
+						
 						spawned_count += 1
 			z += grid_spacing
 		x += grid_spacing
 	
+	# Create MultiMesh instances for each prop type
+	for scene_path in prop_instances:
+		var scene = load(scene_path)
+		if not scene:
+			print("ERROR: Could not load scene: ", scene_path)
+			continue
+		
+		var scene_instance = scene.instantiate()
+		
+		# Collect all meshes in the scene (not just first one)
+		var all_meshes = find_all_mesh_instances(scene_instance)
+		if all_meshes.is_empty():
+			print("ERROR: Scene has no meshes: ", scene_path)
+			scene_instance.queue_free()
+			continue
+		
+		# Create a MultiMesh for each unique mesh found
+		for mesh_data in all_meshes:
+			var mesh = mesh_data["mesh"]
+			var material = mesh_data["material"]
+			
+			var multi_mesh = MultiMesh.new()
+			multi_mesh.mesh = mesh
+			multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
+			multi_mesh.instance_count = prop_instances[scene_path].size()
+			
+			# Set all transforms
+			for i in range(prop_instances[scene_path].size()):
+				multi_mesh.set_instance_transform(i, prop_instances[scene_path][i])
+			
+			# Create and add MultiMeshInstance3D
+			var multi_mesh_instance = MultiMeshInstance3D.new()
+			multi_mesh_instance.multimesh = multi_mesh
+			
+			# Apply material
+			if material:
+				multi_mesh_instance.material_override = material
+			
+			scatter_container.add_child(multi_mesh_instance)
+		
+		scene_instance.queue_free()
+		print("Created MultiMesh for ", scene_path, " with ", prop_instances[scene_path].size(), " instances")
+	
 	print("Found ", boreal_count, " boreal forest grid points")
 	print("Blocked ", water_blocked, " assets from spawning underwater")
-	print("✓ Spawned ", spawned_count, " assets in boreal forest!")
+	print("✓ Spawned ", spawned_count, " assets in boreal forest using MultiMesh!")
 
 func select_weighted_prop(props: Array, total_proportionality: float) -> Dictionary:
 	var random_value = randf() * total_proportionality
@@ -215,3 +270,18 @@ func sample_terrain_height(x: float, z: float) -> float:
 		return result.position.y
 	
 	return 0.0
+
+func find_all_mesh_instances(node: Node) -> Array:
+	var meshes = []
+	
+	if node is MeshInstance3D:
+		var mesh_instance = node as MeshInstance3D
+		meshes.append({
+			"mesh": mesh_instance.mesh,
+			"material": mesh_instance.material_override if mesh_instance.material_override else mesh_instance.get_surface_override_material(0)
+		})
+	
+	for child in node.get_children():
+		meshes.append_array(find_all_mesh_instances(child))
+	
+	return meshes
