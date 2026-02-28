@@ -21,7 +21,7 @@ var precip_img: Image
 @export var rotation_variance: float = 0.3
 @export var scale_variance: float = 0.1
 
-# Boreal forest props - now using Resource array
+# Boreal forest props
 @export var boreal_forest_props: Array[BiomePropData] = []
 
 @export var test_spawn: bool = false:
@@ -36,6 +36,16 @@ var boreal_forest_h_min = Config.boreal_forest_h_min
 var boreal_forest_h_max = Config.boreal_forest_h_max
 var boreal_forest_p_min = Config.boreal_forest_p_min
 var boreal_forest_p_max = Config.boreal_forest_p_max
+
+func _ready():
+	if not Engine.is_editor_hint():
+		await get_tree().process_frame
+		test_biome_scatter()
+
+func _enter_tree():
+	if Engine.is_editor_hint():
+		await get_tree().process_frame
+		test_biome_scatter()
 
 func test_biome_scatter():
 	# Clear previous assets
@@ -115,7 +125,7 @@ func test_biome_scatter():
 		return
 	
 	# Dictionary to store transforms for each prop type
-	var prop_instances: Dictionary = {}  # scene_path -> array of transforms
+	var prop_instances: Dictionary = {}
 	
 	# Generate grid across terrain - constrain within bounds
 	var max_offset = terrain_size / 2.0 - (grid_spacing * boundary_margin)
@@ -181,14 +191,14 @@ func test_biome_scatter():
 		
 		var scene_instance = scene.instantiate()
 		
-		# Collect all meshes in the scene (not just first one)
+		# Collect all meshes in the scene
 		var all_meshes = find_all_mesh_instances(scene_instance)
 		if all_meshes.is_empty():
 			print("ERROR: Scene has no meshes: ", scene_path)
 			scene_instance.queue_free()
 			continue
 		
-		# Create a MultiMesh for each unique mesh found
+		# For each mesh, create ONE MultiMesh with ALL instances
 		for mesh_data in all_meshes:
 			var mesh = mesh_data["mesh"]
 			var material = mesh_data["material"]
@@ -198,15 +208,16 @@ func test_biome_scatter():
 			multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 			multi_mesh.instance_count = prop_instances[scene_path].size()
 			
-			# Set all transforms
+			# Add all transforms
 			for i in range(prop_instances[scene_path].size()):
 				multi_mesh.set_instance_transform(i, prop_instances[scene_path][i])
 			
-			# Create and add MultiMeshInstance3D
 			var multi_mesh_instance = MultiMeshInstance3D.new()
 			multi_mesh_instance.multimesh = multi_mesh
 			
-			# Apply material
+			# Add to group for LOD culling
+			multi_mesh_instance.add_to_group("lod_instance")
+			
 			if material:
 				multi_mesh_instance.material_override = material
 			
