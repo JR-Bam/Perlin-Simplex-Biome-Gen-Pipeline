@@ -36,6 +36,8 @@ var mesh: ArrayMesh
 		update = value
 		if Engine.is_editor_hint() or is_inside_tree():
 			regenerate()
+			
+@export var global_visibility_distance: float = 100.0  # Global far distance
 
 func _ready() -> void:
 	terrain = $MeshInstance3D

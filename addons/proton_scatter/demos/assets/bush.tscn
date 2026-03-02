@@ -7,4 +7,5 @@
 
 [node name="Bush" parent="." index="0"]
 material_override = ExtResource("2_bkwoq")
+lod_bias = 0.001
 instance_shader_parameters/camera_bend_strength = 0.0
