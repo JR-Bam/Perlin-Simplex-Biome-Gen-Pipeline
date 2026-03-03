@@ -5,21 +5,21 @@ uniform sampler2D temperature_map;
 uniform sampler2D precipitation_map;
 uniform sampler2D humidity_map;
 
-// Biome Colors Representation - High Contrast Version
-uniform vec3 ocean_color = vec3(0.02, 0.15, 0.45);            // Rich Navy
-uniform vec3 desert_color = vec3(1.0, 0.85, 0.3);             // Bright Gold
-uniform vec3 grassland_color = vec3(0.4, 0.85, 0.1);          // Lime Green
-uniform vec3 savanna_color = vec3(0.8, 0.6, 0.2);             // Burnt Orange/Ochre
-uniform vec3 tundra_color = vec3(0.85, 0.9, 1.0);             // Bright Arctic White-Blue
-uniform vec3 boreal_forest_color = vec3(0.05, 0.25, 0.15);    // Deep Pine Green
-uniform vec3 temperate_forest_color = vec3(0.1, 0.55, 0.05);  // Mid Grass Green
-uniform vec3 rainforest_color = vec3(0.0, 0.35, 0.05);        // Lush Emerald
-uniform vec3 mountain_color = vec3(0.4, 0.35, 0.3);           // Warm Slate
-uniform vec3 alpine_tundra_color = vec3(0.75, 0.8, 0.9);      // Light gray-blue
+// Biome Colors - Made editable with color picker hints
+uniform vec3 ocean_color : source_color = vec3(0.02, 0.15, 0.45);            // Rich Navy
+uniform vec3 desert_color : source_color = vec3(1.0, 0.85, 0.3);             // Bright Gold
+uniform vec3 grassland_color : source_color = vec3(0.4, 0.85, 0.1);          // Lime Green
+uniform vec3 savanna_color : source_color = vec3(0.8, 0.6, 0.2);             // Burnt Orange/Ochre
+uniform vec3 tundra_color : source_color = vec3(0.85, 0.9, 1.0);             // Bright Arctic White-Blue
+uniform vec3 boreal_forest_color : source_color = vec3(0.05, 0.25, 0.15);    // Deep Pine Green
+uniform vec3 temperate_forest_color : source_color = vec3(0.1, 0.55, 0.05);  // Mid Grass Green
+uniform vec3 woodland_color : source_color = vec3(0.6, 0.5, 0.2);           // Olive/Golden Brown
+uniform vec3 rainforest_color : source_color = vec3(0.0, 0.35, 0.05);        // Lush Emerald
+uniform vec3 mountain_color : source_color = vec3(0.4, 0.35, 0.3);           // Warm Slate
 
 // Fallback colors for gaps (visible indicators)
-uniform vec3 gap_color_1 = vec3(1.0, 0.0, 1.0);               // Magenta - should not appear
-uniform vec3 gap_color_2 = vec3(1.0, 1.0, 0.0);               // Yellow - debug
+uniform vec3 gap_color_1 : source_color = vec3(1.0, 0.0, 1.0);               // Magenta - should not appear
+uniform vec3 gap_color_2 : source_color = vec3(1.0, 1.0, 0.0);               // Yellow - debug
 
 // Biome Textures
 uniform sampler2D ocean_texture;
@@ -29,13 +29,12 @@ uniform sampler2D savanna_texture;
 uniform sampler2D tundra_texture;
 uniform sampler2D boreal_forest_texture;
 uniform sampler2D temperate_forest_texture;
+uniform sampler2D woodland_texture;
 uniform sampler2D rainforest_texture;
 uniform sampler2D mountain_texture;
-uniform sampler2D alpine_tundra_texture;
 
 // All thresholds are normalized between 0 and 1.
-// They are adjusted to ensure the entire 4‑dimensional space [0,1]⁴ is covered.
-// The lake biome has been removed.
+// Updated to match the new biome configuration
 
 // OCEAN: covers all low‑elevation areas
 uniform float ocean_e_min = 0.0;
@@ -47,78 +46,88 @@ uniform float ocean_p_max = 1.0;
 uniform float ocean_h_min = 0.0;
 uniform float ocean_h_max = 1.0;
 
-// DESERT: hot and dry, extended to higher elevations
+// DESERT: hot and dry
 uniform float desert_e_min = 0.15;
 uniform float desert_e_max = 0.9;
 uniform float desert_t_min = 0.6;
 uniform float desert_t_max = 1.0;
 uniform float desert_p_min = 0.0;
-uniform float desert_p_max = 0.35;
+uniform float desert_p_max = 0.3;
 uniform float desert_h_min = 0.0;
-uniform float desert_h_max = 0.35;
+uniform float desert_h_max = 0.3;
 
-// GRASSLAND: temperate, now covers all moisture levels
+// GRASSLAND: temperate, moderate moisture
 uniform float grassland_e_min = 0.2;
 uniform float grassland_e_max = 0.9;
 uniform float grassland_t_min = 0.25;
 uniform float grassland_t_max = 0.65;
 uniform float grassland_p_min = 0.0;
-uniform float grassland_p_max = 1.0;
+uniform float grassland_p_max = 0.5;
 uniform float grassland_h_min = 0.0;
-uniform float grassland_h_max = 1.0;
+uniform float grassland_h_max = 0.5;
 
-// SAVANNA: hot, now covers moist to wet
+// SAVANNA: hot, moderate to high moisture
 uniform float savanna_e_min = 0.15;
 uniform float savanna_e_max = 0.9;
 uniform float savanna_t_min = 0.6;
 uniform float savanna_t_max = 1.0;
 uniform float savanna_p_min = 0.3;
-uniform float savanna_p_max = 1.0;
+uniform float savanna_p_max = 0.7;
 uniform float savanna_h_min = 0.3;
-uniform float savanna_h_max = 1.0;
+uniform float savanna_h_max = 0.7;
 
-// TUNDRA: cold, now covers all moisture levels
+// TUNDRA: cold, moderate moisture
 uniform float tundra_e_min = 0.2;
 uniform float tundra_e_max = 0.9;
 uniform float tundra_t_min = 0.0;
-uniform float tundra_t_max = 0.35;
+uniform float tundra_t_max = 0.25;
 uniform float tundra_p_min = 0.0;
-uniform float tundra_p_max = 1.0;
+uniform float tundra_p_max = 0.5;
 uniform float tundra_h_min = 0.0;
-uniform float tundra_h_max = 1.0;
+uniform float tundra_h_max = 0.5;
 
-// BOREAL FOREST: cool (0.35–0.5), all moisture levels
+// BOREAL FOREST: cool, moderate to high moisture
 uniform float boreal_forest_e_min = 0.2;
 uniform float boreal_forest_e_max = 0.9;
-uniform float boreal_forest_t_min = 0.35;
-uniform float boreal_forest_t_max = 0.5;
-uniform float boreal_forest_p_min = 0.0;
-uniform float boreal_forest_p_max = 1.0;
-uniform float boreal_forest_h_min = 0.0;
-uniform float boreal_forest_h_max = 1.0;
+uniform float boreal_forest_t_min = 0.25;
+uniform float boreal_forest_t_max = 0.4;
+uniform float boreal_forest_p_min = 0.3;
+uniform float boreal_forest_p_max = 0.7;
+uniform float boreal_forest_h_min = 0.3;
+uniform float boreal_forest_h_max = 0.7;
 
-// TEMPERATE FOREST: wet temperate, kept for variety
+// TEMPERATE FOREST: mild, wet
 uniform float temperate_forest_e_min = 0.2;
 uniform float temperate_forest_e_max = 0.9;
 uniform float temperate_forest_t_min = 0.3;
-uniform float temperate_forest_t_max = 0.7;
-uniform float temperate_forest_p_min = 0.6;
+uniform float temperate_forest_t_max = 0.6;
+uniform float temperate_forest_p_min = 0.5;
 uniform float temperate_forest_p_max = 0.85;
-uniform float temperate_forest_h_min = 0.6;
+uniform float temperate_forest_h_min = 0.5;
 uniform float temperate_forest_h_max = 0.85;
+
+// woodland/SHRUBLANDS: mild to warm, moderate moisture (Mediterranean)
+uniform float woodland_e_min = 0.2;
+uniform float woodland_e_max = 0.9;
+uniform float woodland_t_min = 0.4;
+uniform float woodland_t_max = 0.7;
+uniform float woodland_p_min = 0.3;
+uniform float woodland_p_max = 0.6;
+uniform float woodland_h_min = 0.3;
+uniform float woodland_h_max = 0.6;
 
 // RAINFOREST: hot and very wet
 uniform float rainforest_e_min = 0.15;
 uniform float rainforest_e_max = 0.9;
-uniform float rainforest_t_min = 0.65;
+uniform float rainforest_t_min = 0.6;
 uniform float rainforest_t_max = 1.0;
 uniform float rainforest_p_min = 0.7;
 uniform float rainforest_p_max = 1.0;
 uniform float rainforest_h_min = 0.7;
 uniform float rainforest_h_max = 1.0;
 
-// MOUNTAIN: very high elevation, now covers all temperatures
-uniform float mountain_e_min = 0.9;
+// MOUNTAIN: very high elevation
+uniform float mountain_e_min = 0.85;
 uniform float mountain_e_max = 1.0;
 uniform float mountain_t_min = 0.0;
 uniform float mountain_t_max = 1.0;
@@ -127,21 +136,11 @@ uniform float mountain_p_max = 1.0;
 uniform float mountain_h_min = 0.0;
 uniform float mountain_h_max = 1.0;
 
-// ALPINE TUNDRA: high cold variant, now all moisture
-uniform float alpine_tundra_e_min = 0.75;
-uniform float alpine_tundra_e_max = 0.95;
-uniform float alpine_tundra_t_min = 0.0;
-uniform float alpine_tundra_t_max = 0.35;
-uniform float alpine_tundra_p_min = 0.0;
-uniform float alpine_tundra_p_max = 1.0;
-uniform float alpine_tundra_h_min = 0.0;
-uniform float alpine_tundra_h_max = 1.0;
-
 uniform float blend_radius = 0.01;
 uniform bool debug_mode = false;
 uniform float texture_scale = 200.0;
 
-// Number of biomes (lake removed)
+// Number of biomes
 const int biome_count = 10;
 
 // Helper function to get texture color by biome index
@@ -164,11 +163,11 @@ vec3 get_biome_texture(int biome_index, vec2 uv) {
 	} else if (biome_index == 6) {
 		return texture(temperate_forest_texture, scaled_uv).rgb;
 	} else if (biome_index == 7) {
-		return texture(rainforest_texture, scaled_uv).rgb;
+		return texture(woodland_texture, scaled_uv).rgb;
 	} else if (biome_index == 8) {
-		return texture(mountain_texture, scaled_uv).rgb;
+		return texture(rainforest_texture, scaled_uv).rgb;
 	} else {
-		return texture(alpine_tundra_texture, scaled_uv).rgb;
+		return texture(mountain_texture, scaled_uv).rgb;
 	}
 }
 
@@ -189,11 +188,11 @@ vec3 get_biome_color(int biome_index) {
 	} else if (biome_index == 6) {
 		return temperate_forest_color;
 	} else if (biome_index == 7) {
-		return rainforest_color;
+		return woodland_color;
 	} else if (biome_index == 8) {
-		return mountain_color;
+		return rainforest_color;
 	} else {
-		return alpine_tundra_color;
+		return mountain_color;
 	}
 }
 
@@ -218,68 +217,61 @@ void fragment(){
 	vec3 colors[10] = vec3[10](
 		ocean_color, desert_color, grassland_color, savanna_color,
 		tundra_color, boreal_forest_color, temperate_forest_color,
-		rainforest_color, mountain_color, alpine_tundra_color
+		woodland_color, rainforest_color, mountain_color
 	);
 
 	float min_e[10] = float[10](
 		ocean_e_min, desert_e_min, grassland_e_min, savanna_e_min,
 		tundra_e_min, boreal_forest_e_min, temperate_forest_e_min,
-		rainforest_e_min, mountain_e_min, alpine_tundra_e_min
+		woodland_e_min, rainforest_e_min, mountain_e_min
 	);
 
 	float max_e[10] = float[10](
 		ocean_e_max, desert_e_max, grassland_e_max, savanna_e_max,
 		tundra_e_max, boreal_forest_e_max, temperate_forest_e_max,
-		rainforest_e_max, mountain_e_max, alpine_tundra_e_max
+		woodland_e_max, rainforest_e_max, mountain_e_max
 	);
 
 	float min_t[10] = float[10](
 		ocean_t_min, desert_t_min, grassland_t_min, savanna_t_min,
 		tundra_t_min, boreal_forest_t_min, temperate_forest_t_min,
-		rainforest_t_min, mountain_t_min, alpine_tundra_t_min
+		woodland_t_min, rainforest_t_min, mountain_t_min
 	);
 
 	float max_t[10] = float[10](
 		ocean_t_max, desert_t_max, grassland_t_max, savanna_t_max,
 		tundra_t_max, boreal_forest_t_max, temperate_forest_t_max,
-		rainforest_t_max, mountain_t_max, alpine_tundra_t_max
+		woodland_t_max, rainforest_t_max, mountain_t_max
 	);
 
 	float min_p[10] = float[10](
 		ocean_p_min, desert_p_min, grassland_p_min, savanna_p_min,
 		tundra_p_min, boreal_forest_p_min, temperate_forest_p_min,
-		rainforest_p_min, mountain_p_min, alpine_tundra_p_min
+		woodland_p_min, rainforest_p_min, mountain_p_min
 	);
 
 	float max_p[10] = float[10](
 		ocean_p_max, desert_p_max, grassland_p_max, savanna_p_max,
 		tundra_p_max, boreal_forest_p_max, temperate_forest_p_max,
-		rainforest_p_max, mountain_p_max, alpine_tundra_p_max
+		woodland_p_max, rainforest_p_max, mountain_p_max
 	);
 
 	float min_h[10] = float[10](
 		ocean_h_min, desert_h_min, grassland_h_min, savanna_h_min,
 		tundra_h_min, boreal_forest_h_min, temperate_forest_h_min,
-		rainforest_h_min, mountain_h_min, alpine_tundra_h_min
+		woodland_h_min, rainforest_h_min, mountain_h_min
 	);
 
 	float max_h[10] = float[10](
 		ocean_h_max, desert_h_max, grassland_h_max, savanna_h_max,
 		tundra_h_max, boreal_forest_h_max, temperate_forest_h_max,
-		rainforest_h_max, mountain_h_max, alpine_tundra_h_max
+		woodland_h_max, rainforest_h_max, mountain_h_max
 	);
 
 	float weights[10];
 	bool any_biome_active = false;
 	int dominant_biome = 0;
 	float dominant_weight = 0.0;
-
-	// Add elevation bias for tundra (index 5) to further emphasize high altitude preference
-	float tundra_elevation_bias = 1.0;
-	if (elevation >= 0.5) {
-		// Boost tundra weight at higher elevations
-		tundra_elevation_bias = 1.0 + (elevation - 0.5) * 2.0; // Up to 2.0 at max elevation
-	}
 
 	// First pass: calculate raw weights
 	for (int i = 0; i < biome_count; i++){
@@ -328,11 +320,6 @@ void fragment(){
 
 			// Combined weight (multiplicative gives sharper transitions)
 			weights[i] = e_weight * t_weight * p_weight * h_weight;
-
-			// Apply elevation bias for tundra (index 5)
-			if (i == 5) { // Tundra
-				weights[i] *= tundra_elevation_bias;
-			}
 		}
 		
 		// Biome dominance calculations for texturing
