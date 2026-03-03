@@ -184,9 +184,14 @@ func _create_chunked_lods(parent: Node3D, meshes: Array, transforms: Array) -> v
 			var material = mesh_data["material"]
 			var chunk_transforms = chunks[chunk_key]
 			
-			_make_lod(parent, mesh, material, chunk_transforms, 1.0, lod_near_distance, lod_mid_distance, chunk_key)
-			_make_lod(parent, mesh, material, chunk_transforms, lod_mid_density, lod_mid_distance, lod_far_distance, chunk_key)
-			_make_lod(parent, mesh, material, chunk_transforms, lod_far_density, lod_far_distance, lod_max_distance, chunk_key)
+			# LOD 0 - Full detail: 0 to 80 (overlap at 60-80)
+			_make_lod(parent, mesh, material, chunk_transforms, 1.0, lod_near_distance, lod_mid_distance + 20.0, chunk_key)
+			
+			# LOD 1 - Medium detail: 40 to 170 (overlap at 40-80 and 150-170)
+			_make_lod(parent, mesh, material, chunk_transforms, lod_mid_density, lod_mid_distance - 20.0, lod_far_distance + 20.0, chunk_key)
+			
+			# LOD 2 - Low detail: 130 to 300+ (overlap at 130-170)
+			_make_lod(parent, mesh, material, chunk_transforms, lod_far_density, lod_far_distance - 20.0, lod_max_distance, chunk_key)
 
 func _make_lod(parent: Node3D, mesh: Mesh, material: Material, transforms: Array, density: float, near: float, far: float, chunk_key: Vector3i) -> void:
 	if not mesh:
@@ -216,7 +221,7 @@ func _make_lod(parent: Node3D, mesh: Mesh, material: Material, transforms: Array
 	
 	instance.visibility_range_begin = near
 	instance.visibility_range_end = far
-	instance.visibility_range_end_margin = 5.0
+	instance.visibility_range_end_margin = 10.0  # Increased fade margin for smooth transitions
 	instance.add_to_group("lod_instance")
 	instance.add_to_group("chunk_%s" % chunk_key)
 	instance.visible = true
