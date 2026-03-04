@@ -39,82 +39,82 @@ uniform float desert_e_max = 0.9;
 uniform float desert_t_min = 0.5;
 uniform float desert_t_max = 1.0;
 uniform float desert_p_min = 0.0;
-uniform float desert_p_max = 0.3;
+uniform float desert_p_max = 0.2;      // Reduced for realism
 uniform float desert_h_min = 0.0;
-uniform float desert_h_max = 1.0;
+uniform float desert_h_max = 0.3;      // Reduced for realism
 
 // GRASSLAND: Temperate, Mid-Moisture
 uniform float grassland_e_min = 0.1;
 uniform float grassland_e_max = 0.9;
 uniform float grassland_t_min = 0.2;
-uniform float grassland_t_max = 0.7;
-uniform float grassland_p_min = 0.0;
-uniform float grassland_p_max = 0.6;
-uniform float grassland_h_min = 0.0;
-uniform float grassland_h_max = 1.0;
+uniform float grassland_t_max = 0.8;    // Increased
+uniform float grassland_p_min = 0.1;
+uniform float grassland_p_max = 0.5;    // REAL: Moderate precipitation
+uniform float grassland_h_min = 0.2;
+uniform float grassland_h_max = 0.7;    // REAL: Moderate humidity
 
 // SAVANNA: Hot, Mid-Moisture
 uniform float savanna_e_min = 0.1;
 uniform float savanna_e_max = 0.9;
-uniform float savanna_t_min = 0.5;
+uniform float savanna_t_min = 0.6;      // Increased
 uniform float savanna_t_max = 1.0;
 uniform float savanna_p_min = 0.3;
-uniform float savanna_p_max = 0.8;
-uniform float savanna_h_min = 0.0;
-uniform float savanna_h_max = 1.0;
+uniform float savanna_p_max = 0.7;      // REAL: Wet/dry seasons
+uniform float savanna_h_min = 0.2;
+uniform float savanna_h_max = 0.7;      // REAL: Seasonal humidity
 
-// TUNDRA: Cold
+// TUNDRA: Cold - Now full range catch-all for cold regions
 uniform float tundra_e_min = 0.1;
 uniform float tundra_e_max = 0.9;
 uniform float tundra_t_min = 0.0;
-uniform float tundra_t_max = 0.3;
-uniform float tundra_p_min = 0.0;
-uniform float tundra_p_max = 1.0;
-uniform float tundra_h_min = 0.0;
-uniform float tundra_h_max = 1.0;
+uniform float tundra_t_max = 0.4;      // Increased
+uniform float tundra_p_min = 0.0;      // Reduced - polar deserts
+uniform float tundra_p_max = 1.0;      // Increased - full range
+uniform float tundra_h_min = 0.0;      // Reduced - cold deserts
+uniform float tundra_h_max = 1.0;      // Increased - full range
 
 // BOREAL FOREST: Cool, Moist
 uniform float boreal_forest_e_min = 0.1;
 uniform float boreal_forest_e_max = 0.9;
-uniform float boreal_forest_t_min = 0.15;
+uniform float boreal_forest_t_min = 0.2;  // Increased
 uniform float boreal_forest_t_max = 0.5;
-uniform float boreal_forest_p_min = 0.2;
-uniform float boreal_forest_p_max = 1.0;
-uniform float boreal_forest_h_min = 0.0;
-uniform float boreal_forest_h_max = 1.0;
+uniform float boreal_forest_p_min = 0.3;  // Increased
+uniform float boreal_forest_p_max = 0.8;  // REAL: Moderate precipitation
+uniform float boreal_forest_h_min = 0.3;
+uniform float boreal_forest_h_max = 0.9;  // REAL: Moist
 
 // TEMPERATE FOREST: Temperate, Wet
 uniform float temperate_forest_e_min = 0.1;
 uniform float temperate_forest_e_max = 0.9;
 uniform float temperate_forest_t_min = 0.3;
-uniform float temperate_forest_t_max = 0.65;
+uniform float temperate_forest_t_max = 0.7;  // Increased
 uniform float temperate_forest_p_min = 0.5;
 uniform float temperate_forest_p_max = 1.0;
-uniform float temperate_forest_h_min = 0.0;
-uniform float temperate_forest_h_max = 1.0;
+uniform float temperate_forest_h_min = 0.4;
+uniform float temperate_forest_h_max = 0.9;  // REAL: Humid
 
 // WOODLAND: Mild to Warm, Moderate Moisture (Mediterranean)
 uniform float woodland_e_min = 0.1;
 uniform float woodland_e_max = 0.9;
 uniform float woodland_t_min = 0.4;
-uniform float woodland_t_max = 0.75;
-uniform float woodland_p_min = 0.1;
-uniform float woodland_p_max = 0.7;
-uniform float woodland_h_min = 0.0;
-uniform float woodland_h_max = 1.0;
+uniform float woodland_t_max = 0.8;      // Increased
+uniform float woodland_p_min = 0.2;      // Increased
+uniform float woodland_p_max = 0.6;
+uniform float woodland_h_min = 0.2;
+uniform float woodland_h_max = 0.7;      // REAL: Moderate
 
 // RAINFOREST: Hot and Very Wet
 uniform float rainforest_e_min = 0.1;
 uniform float rainforest_e_max = 0.9;
 uniform float rainforest_t_min = 0.6;
 uniform float rainforest_t_max = 1.0;
-uniform float rainforest_p_min = 0.7;
+uniform float rainforest_p_min = 0.8;    // Increased - extremely high precipitation
 uniform float rainforest_p_max = 1.0;
-uniform float rainforest_h_min = 0.0;
-uniform float rainforest_h_max = 1.0;
+uniform float rainforest_h_min = 0.6;
+uniform float rainforest_h_max = 1.0;    // REAL: Extremely humid
 
 // MOUNTAIN: Very High Elevation
-uniform float mountain_e_min = 0.85;
+uniform float mountain_e_min = 0.8;      // Reduced for more coverage
 uniform float mountain_e_max = 1.0;
 uniform float mountain_t_min = 0.0;
 uniform float mountain_t_max = 1.0;
@@ -128,6 +128,7 @@ uniform bool debug_mode = false;
 
 // Number of biomes
 const int biome_count = 10;
+const int MAX_NEAREST_BIOMES = 3; // Number of closest biomes to track for gap filling
 
 void fragment(){
 	float elevation = texture(elevation_map, UV).r;
@@ -198,9 +199,71 @@ void fragment(){
 	float weights[10];
 	bool any_biome_active = false;
 
-	// First pass: calculate raw weights
+	// Track multiple closest biomes for better gap filling
+	int nearest_biomes[MAX_NEAREST_BIOMES];
+	float nearest_distances[MAX_NEAREST_BIOMES];
+
+	// Initialize nearest distances to large values
+	for (int j = 0; j < MAX_NEAREST_BIOMES; j++) {
+		nearest_distances[j] = 1e10;
+		nearest_biomes[j] = 0;
+	}
+
+	// Single pass: calculate weights AND track closest biomes
 	for (int i = 0; i < biome_count; i++){
-		// Check if completely outside all ranges (with blend radius)
+		// Calculate distance to this biome's range (for fallback)
+		float e_dist = 0.0;
+		float t_dist = 0.0;
+		float p_dist = 0.0;
+		float h_dist = 0.0;
+
+		// Elevation distance
+		if (elevation < min_e[i]) {
+			e_dist = min_e[i] - elevation;
+		} else if (elevation > max_e[i]) {
+			e_dist = elevation - max_e[i];
+		}
+
+		// Temperature distance
+		if (temperature < min_t[i]) {
+			t_dist = min_t[i] - temperature;
+		} else if (temperature > max_t[i]) {
+			t_dist = temperature - max_t[i];
+		}
+
+		// Precipitation distance
+		if (precipitation < min_p[i]) {
+			p_dist = min_p[i] - precipitation;
+		} else if (precipitation > max_p[i]) {
+			p_dist = precipitation - max_p[i];
+		}
+
+		// Humidity distance
+		if (humidity < min_h[i]) {
+			h_dist = min_h[i] - humidity;
+		} else if (humidity > max_h[i]) {
+			h_dist = humidity - max_h[i];
+		}
+
+		// Combined distance for fallback tracking
+		float distance = e_dist + t_dist + p_dist + h_dist;
+
+		// Track multiple closest biomes
+		for (int j = 0; j < MAX_NEAREST_BIOMES; j++) {
+			if (distance < nearest_distances[j]) {
+				// Shift existing entries
+				for (int k = MAX_NEAREST_BIOMES - 1; k > j; k--) {
+					nearest_distances[k] = nearest_distances[k-1];
+					nearest_biomes[k] = nearest_biomes[k-1];
+				}
+				// Insert new closest
+				nearest_distances[j] = distance;
+				nearest_biomes[j] = i;
+				break;
+			}
+		}
+
+		// Check if within range (including blend radius)
 		if (elevation < min_e[i] - blend_radius || elevation > max_e[i] + blend_radius ||
 			temperature < min_t[i] - blend_radius || temperature > max_t[i] + blend_radius ||
 			precipitation < min_p[i] - blend_radius || precipitation > max_p[i] + blend_radius ||
@@ -248,67 +311,53 @@ void fragment(){
 		}
 	}
 
-	// If no biomes are active, use fallback system
+	// If no biomes are active, use fallback system with multiple closest biomes
 	if (!any_biome_active) {
 		if (debug_mode) {
 			// In debug mode, show bright magenta for gaps
 			COLOR.rgb = gap_color_1;
 		} else {
-			// In production, find closest biome as fallback
-			float best_match = 0.0;
-			int best_index = 0;
+			// Calculate weights based on inverse distances
+			float total_inv_dist = 0.0;
+			float gap_weights[MAX_NEAREST_BIOMES];
+			bool exact_match = false;
 
-			for (int i = 0; i < biome_count; i++) {
-				// Calculate distance to each biome's ideal range
-				float e_dist = 0.0;
-				float t_dist = 0.0;
-				float p_dist = 0.0;
-				float h_dist = 0.0;
-
-				// Elevation distance
-				if (elevation < min_e[i]) {
-					e_dist = min_e[i] - elevation;
-				} else if (elevation > max_e[i]) {
-					e_dist = elevation - max_e[i];
+			for (int j = 0; j < MAX_NEAREST_BIOMES; j++) {
+				if (nearest_distances[j] < 0.001) {
+					// If distance is nearly zero, just use this biome
+					COLOR.rgb = colors[nearest_biomes[j]] * 0.9; // Slightly dimmed
+					exact_match = true;
+					break;
 				}
 
-				// Temperature distance
-				if (temperature < min_t[i]) {
-					t_dist = min_t[i] - temperature;
-				} else if (temperature > max_t[i]) {
-					t_dist = temperature - max_t[i];
-				}
-
-				// Precipitation distance
-				if (precipitation < min_p[i]) {
-					p_dist = min_p[i] - precipitation;
-				} else if (precipitation > max_p[i]) {
-					p_dist = precipitation - max_p[i];
-				}
-
-				// Humidity distance
-				if (humidity < min_h[i]) {
-					h_dist = min_h[i] - humidity;
-				} else if (humidity > max_h[i]) {
-					h_dist = humidity - max_h[i];
-				}
-
-				// Combined distance (Euclidean-like)
-				float distance = e_dist + t_dist + p_dist + h_dist;
-				float match = 1.0 / (1.0 + distance * 10.0); // Convert to match score
-
-				if (match > best_match) {
-					best_match = match;
-					best_index = i;
-				}
+				gap_weights[j] = 1.0 / nearest_distances[j];
+				total_inv_dist += gap_weights[j];
 			}
 
-			// Use the closest biome with reduced opacity to indicate it's a gap
-			COLOR.rgb = colors[best_index] * 0.7; // Slightly dimmed to indicate fallback
+			if (!exact_match) {
+				// Normalize gap weights
+				if (total_inv_dist > 0.0) {
+					for (int j = 0; j < MAX_NEAREST_BIOMES; j++) {
+						gap_weights[j] /= total_inv_dist;
+					}
+				}
+
+				// Blend the nearest biomes
+				vec3 blended_color = vec3(0.0);
+				for (int j = 0; j < MAX_NEAREST_BIOMES; j++) {
+					blended_color += colors[nearest_biomes[j]] * gap_weights[j];
+				}
+
+				// Slightly dimmed to indicate transition zone
+				COLOR.rgb = blended_color * 0.9;
+			}
+
+			// Add subtle noise to break up uniformity in transition zones
+			float noise = sin(UV.x * 100.0 + UV.y * 100.0) * 0.5 + 0.5;
+			COLOR.rgb *= mix(0.95, 1.05, noise);
 		}
 
 	} else {
-
 		// Normalize weights
 		float total_weight = 0.0;
 		for (int i = 0; i < biome_count; i++){
