@@ -2,12 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dxxssg7gfb07p"
+uid="uid://o8gd04hecp7u"
 valid=false
 
 [deps]
 
-source_file="res://Assets/Textures/Alpine Tundra/snow_02_nor_gl_1k.exr"
+source_file="res://Assets/Textures/Woodland/leafy_grass_nor_gl_1k.exr"
 
 [params]
 
