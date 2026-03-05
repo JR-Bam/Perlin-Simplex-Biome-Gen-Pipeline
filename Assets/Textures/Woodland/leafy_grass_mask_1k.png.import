@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bdil3xsxqb230"
-path="res://.godot/imported/snow_02_rough_1k.jpg-28c64792bd7b865b350d48e211c67b3d.ctex"
+uid="uid://3w3pb2huer6i"
+path="res://.godot/imported/leafy_grass_mask_1k.png-9af97d984d600de1672c048ef0db3443.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Textures/Alpine Tundra/snow_02_rough_1k.jpg"
-dest_files=["res://.godot/imported/snow_02_rough_1k.jpg-28c64792bd7b865b350d48e211c67b3d.ctex"]
+source_file="res://Assets/Textures/Woodland/leafy_grass_mask_1k.png"
+dest_files=["res://.godot/imported/leafy_grass_mask_1k.png-9af97d984d600de1672c048ef0db3443.ctex"]
 
 [params]
 

@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bw82jlbumqvi1"
-path="res://.godot/imported/snow_02_disp_1k.png-ee3a48eb6a63dd65321bf113159a1b92.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://bl2cw2s4vaoeu"
+valid=false
 
 [deps]
 
-source_file="res://Assets/Textures/Alpine Tundra/snow_02_disp_1k.png"
-dest_files=["res://.godot/imported/snow_02_disp_1k.png-ee3a48eb6a63dd65321bf113159a1b92.ctex"]
+source_file="res://Assets/Textures/Woodland/leafy_grass_rough_1k.exr"
 
 [params]
 

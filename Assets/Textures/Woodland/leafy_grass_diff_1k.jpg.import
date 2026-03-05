@@ -2,26 +2,27 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ca0my5v25hgdu"
-path="res://.godot/imported/snow_02_translucent_1k.png-1567797229d27e3b935c4a8523a5c581.ctex"
+uid="uid://tch6hpb7dql2"
+path.s3tc="res://.godot/imported/leafy_grass_diff_1k.jpg-67080ca824ba63d5fb01e96806261ece.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
-source_file="res://Assets/Textures/Alpine Tundra/snow_02_translucent_1k.png"
-dest_files=["res://.godot/imported/snow_02_translucent_1k.png-1567797229d27e3b935c4a8523a5c581.ctex"]
+source_file="res://Assets/Textures/Woodland/leafy_grass_diff_1k.jpg"
+dest_files=["res://.godot/imported/leafy_grass_diff_1k.jpg-67080ca824ba63d5fb01e96806261ece.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
@@ -31,4 +32,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
