@@ -402,7 +402,16 @@ void fragment(){
 			if (weights[i] > 0.0) {
 				vec3 tex = get_biome_texture(i, UV);
 				vec3 col = get_biome_color(i);
-				vec3 final_tex = (tex == vec3(0.0)) ? col : tex;
+				vec3 tinted = tex * col;
+
+				// 1. Calculate the Luminance 
+				float luminance = dot(tinted, vec3(0.299, 0.587, 0.114));
+
+				// 2. Mix the tinted color with its own grayscale version
+				// 0.0 = Grayscale, 1.0 = Full Color.
+				float saturation_factor = 0.4; 
+				vec3 final_tex = mix(vec3(luminance), tinted, saturation_factor);
+				
 				blended_albedo += final_tex * weights[i];
 			}
 		}
