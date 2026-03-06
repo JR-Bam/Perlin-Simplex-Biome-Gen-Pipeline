@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bnow0d26t0ms3"
+
+[deps]
+
+files=["res://logs/gpu_data_2026-03-06T22-49-26.GPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-49-26.CPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-49-26.Draw Calls.translation", "res://logs/gpu_data_2026-03-06T22-49-26.Video Memory (MB).translation", "res://logs/gpu_data_2026-03-06T22-49-26.FPS.translation"]
+
+source_file="res://logs/gpu_data_2026-03-06T22-49-26.csv"
+dest_files=["res://logs/gpu_data_2026-03-06T22-49-26.GPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-49-26.CPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-49-26.Draw Calls.translation", "res://logs/gpu_data_2026-03-06T22-49-26.Video Memory (MB).translation", "res://logs/gpu_data_2026-03-06T22-49-26.FPS.translation"]
+
+[params]
+
+compress=true
+delimiter=0

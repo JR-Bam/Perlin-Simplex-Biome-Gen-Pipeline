@@ -15,6 +15,10 @@ run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+Monitor="*res://monitor.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/SunshineVolumetricClouds/plugin.cfg", "res://addons/proton_scatter/plugin.cfg")

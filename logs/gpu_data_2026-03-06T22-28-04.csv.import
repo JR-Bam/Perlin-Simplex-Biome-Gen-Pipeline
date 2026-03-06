@@ -1,0 +1,15 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://d25qlykvovt3x"
+valid=false
+
+[deps]
+
+source_file="res://logs/gpu_data_2026-03-06T22-28-04.csv"
+
+[params]
+
+compress=true
+delimiter=0
