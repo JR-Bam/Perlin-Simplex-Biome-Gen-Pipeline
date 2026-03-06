@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://cwvxe6x6r3b83"]
+
+[ext_resource type="ArrayMesh" uid="uid://b00x0fic7kodw" path="res://Assets/Models/desert_cactus_2.res" id="1_0bxlk"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_qxpni"]
+radius = 0.300686
+height = 3.76118
+
+[node name="DesertCactus2" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1.19249e-08, 1, 0, -1, 1.19249e-08, 0, -0.05, 0)
+mesh = ExtResource("1_0bxlk")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1.19249e-08, 1, 0, -1, 1.19249e-08, 0, -0.05, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 0.0700698, 0.997542, 0, -0.997542, 0.0700698, 0, -0.12248, 2)
+shape = SubResource("CapsuleShape3D_qxpni")
