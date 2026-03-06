@@ -88,20 +88,7 @@ var precip_img: Image
 @export var woodland_props: Array[BiomePropData]
 @export var woodland_counts: Array[int]
 
-var biome_thresholds = {
-	"boreal_forest": {"t_min": Config.boreal_forest_t_min, "t_max": Config.boreal_forest_t_max, "h_min": Config.boreal_forest_h_min, "h_max": Config.boreal_forest_h_max, "p_min": Config.boreal_forest_p_min, "p_max": Config.boreal_forest_p_max},
-	"desert": {"t_min": Config.desert_t_min, "t_max": Config.desert_t_max, "h_min": Config.desert_h_min, "h_max": Config.desert_h_max, "p_min": Config.desert_p_min, "p_max": Config.desert_p_max},
-	"grassland": {"t_min": Config.grassland_t_min, "t_max": Config.grassland_t_max, "h_min": Config.grassland_h_min, "h_max": Config.grassland_h_max, "p_min": Config.grassland_p_min, "p_max": Config.grassland_p_max},
-	"savanna": {"t_min": Config.savanna_t_min, "t_max": Config.savanna_t_max, "h_min": Config.savanna_h_min, "h_max": Config.savanna_h_max, "p_min": Config.savanna_p_min, "p_max": Config.savanna_p_max},
-	"temperate_forest": {"t_min": Config.temperate_forest_t_min, "t_max": Config.temperate_forest_t_max, "h_min": Config.temperate_forest_h_min, "h_max": Config.temperate_forest_h_max, "p_min": Config.temperate_forest_p_min, "p_max": Config.temperate_forest_p_max},
-	"rainforest": {"t_min": Config.rainforest_t_min, "t_max": Config.rainforest_t_max, "h_min": Config.rainforest_h_min, "h_max": Config.rainforest_h_max, "p_min": Config.rainforest_p_min, "p_max": Config.rainforest_p_max},
-	"tundra": {"t_min": Config.tundra_t_min, "t_max": Config.tundra_t_max, "h_min": Config.tundra_h_min, "h_max": Config.tundra_h_max, "p_min": Config.tundra_p_min, "p_max": Config.tundra_p_max},
-	"woodland": {"t_min": Config.woodland_t_min, "t_max": Config.woodland_t_max, "h_min": Config.woodland_h_min, "h_max": Config.woodland_h_max, "p_min": Config.woodland_p_min, "p_max": Config.woodland_p_max},
-	"ocean": {"t_min": Config.ocean_t_min, "t_max": Config.ocean_t_max, "h_min": Config.ocean_h_min, "h_max": Config.ocean_h_max, "p_min": Config.ocean_p_min, "p_max": Config.ocean_p_max},
-	"mountain": {"t_min": Config.mountain_t_min, "t_max": Config.mountain_t_max, "h_min": Config.mountain_h_min, "h_max": Config.mountain_h_max, "p_min": Config.mountain_p_min, "p_max": Config.mountain_p_max},
-}
-
-var current_biome_thresholds: Dictionary
+var biome_thresholds = {}
 
 func _ready():
 	if not Engine.is_editor_hint():
@@ -113,7 +100,131 @@ func _enter_tree():
 		await get_tree().process_frame
 		test_biome_scatter()
 
+func safe_get_float(property_name: String, default_value: float) -> float:
+	"""Safely get a float property from Config"""
+	if Config.has_meta(property_name) or property_name in Config:
+		var val = Config.get(property_name)
+		if val is float or val is int:
+			return float(val)
+	return default_value
+
+func build_biome_thresholds():
+	"""Build biome thresholds from Config with safe defaults"""
+	biome_thresholds.clear()
+	
+	biome_thresholds["ocean"] = {
+		"e_min": safe_get_float("ocean_e_min", 0.0),
+		"e_max": safe_get_float("ocean_e_max", 0.25),
+		"t_min": safe_get_float("ocean_t_min", 0.0),
+		"t_max": safe_get_float("ocean_t_max", 1.0),
+		"h_min": safe_get_float("ocean_h_min", 0.0),
+		"h_max": safe_get_float("ocean_h_max", 1.0),
+		"p_min": safe_get_float("ocean_p_min", 0.0),
+		"p_max": safe_get_float("ocean_p_max", 1.0),
+	}
+	
+	biome_thresholds["desert"] = {
+		"e_min": safe_get_float("desert_e_min", 0.1),
+		"e_max": safe_get_float("desert_e_max", 0.9),
+		"t_min": safe_get_float("desert_t_min", 0.5),
+		"t_max": safe_get_float("desert_t_max", 1.0),
+		"h_min": safe_get_float("desert_h_min", 0.0),
+		"h_max": safe_get_float("desert_h_max", 0.3),
+		"p_min": safe_get_float("desert_p_min", 0.0),
+		"p_max": safe_get_float("desert_p_max", 0.2),
+	}
+	
+	biome_thresholds["grassland"] = {
+		"e_min": safe_get_float("grassland_e_min", 0.1),
+		"e_max": safe_get_float("grassland_e_max", 0.9),
+		"t_min": safe_get_float("grassland_t_min", 0.2),
+		"t_max": safe_get_float("grassland_t_max", 0.8),
+		"h_min": safe_get_float("grassland_h_min", 0.2),
+		"h_max": safe_get_float("grassland_h_max", 0.7),
+		"p_min": safe_get_float("grassland_p_min", 0.1),
+		"p_max": safe_get_float("grassland_p_max", 0.5),
+	}
+	
+	biome_thresholds["savanna"] = {
+		"e_min": safe_get_float("savanna_e_min", 0.1),
+		"e_max": safe_get_float("savanna_e_max", 0.9),
+		"t_min": safe_get_float("savanna_t_min", 0.6),
+		"t_max": safe_get_float("savanna_t_max", 1.0),
+		"h_min": safe_get_float("savanna_h_min", 0.2),
+		"h_max": safe_get_float("savanna_h_max", 0.7),
+		"p_min": safe_get_float("savanna_p_min", 0.3),
+		"p_max": safe_get_float("savanna_p_max", 0.7),
+	}
+	
+	biome_thresholds["tundra"] = {
+		"e_min": safe_get_float("tundra_e_min", 0.1),
+		"e_max": safe_get_float("tundra_e_max", 0.9),
+		"t_min": safe_get_float("tundra_t_min", 0.0),
+		"t_max": safe_get_float("tundra_t_max", 0.4),
+		"h_min": safe_get_float("tundra_h_min", 0.0),
+		"h_max": safe_get_float("tundra_h_max", 1.0),
+		"p_min": safe_get_float("tundra_p_min", 0.0),
+		"p_max": safe_get_float("tundra_p_max", 1.0),
+	}
+	
+	biome_thresholds["boreal_forest"] = {
+		"e_min": safe_get_float("boreal_forest_e_min", 0.1),
+		"e_max": safe_get_float("boreal_forest_e_max", 0.9),
+		"t_min": safe_get_float("boreal_forest_t_min", 0.2),
+		"t_max": safe_get_float("boreal_forest_t_max", 0.5),
+		"h_min": safe_get_float("boreal_forest_h_min", 0.3),
+		"h_max": safe_get_float("boreal_forest_h_max", 0.9),
+		"p_min": safe_get_float("boreal_forest_p_min", 0.3),
+		"p_max": safe_get_float("boreal_forest_p_max", 0.8),
+	}
+	
+	biome_thresholds["temperate_forest"] = {
+		"e_min": safe_get_float("temperate_forest_e_min", 0.1),
+		"e_max": safe_get_float("temperate_forest_e_max", 0.9),
+		"t_min": safe_get_float("temperate_forest_t_min", 0.3),
+		"t_max": safe_get_float("temperate_forest_t_max", 0.7),
+		"h_min": safe_get_float("temperate_forest_h_min", 0.4),
+		"h_max": safe_get_float("temperate_forest_h_max", 0.9),
+		"p_min": safe_get_float("temperate_forest_p_min", 0.5),
+		"p_max": safe_get_float("temperate_forest_p_max", 1.0),
+	}
+	
+	biome_thresholds["rainforest"] = {
+		"e_min": safe_get_float("rainforest_e_min", 0.1),
+		"e_max": safe_get_float("rainforest_e_max", 0.9),
+		"t_min": safe_get_float("rainforest_t_min", 0.6),
+		"t_max": safe_get_float("rainforest_t_max", 1.0),
+		"h_min": safe_get_float("rainforest_h_min", 0.6),
+		"h_max": safe_get_float("rainforest_h_max", 1.0),
+		"p_min": safe_get_float("rainforest_p_min", 0.8),
+		"p_max": safe_get_float("rainforest_p_max", 1.0),
+	}
+	
+	biome_thresholds["mountain"] = {
+		"e_min": safe_get_float("mountain_e_min", 0.8),
+		"e_max": safe_get_float("mountain_e_max", 1.0),
+		"t_min": safe_get_float("mountain_t_min", 0.0),
+		"t_max": safe_get_float("mountain_t_max", 1.0),
+		"h_min": safe_get_float("mountain_h_min", 0.0),
+		"h_max": safe_get_float("mountain_h_max", 1.0),
+		"p_min": safe_get_float("mountain_p_min", 0.0),
+		"p_max": safe_get_float("mountain_p_max", 1.0),
+	}
+	
+	biome_thresholds["woodland"] = {
+		"e_min": safe_get_float("woodland_e_min", 0.1),
+		"e_max": safe_get_float("woodland_e_max", 0.9),
+		"t_min": safe_get_float("woodland_t_min", 0.4),
+		"t_max": safe_get_float("woodland_t_max", 0.8),
+		"h_min": safe_get_float("woodland_h_min", 0.2),
+		"h_max": safe_get_float("woodland_h_max", 0.7),
+		"p_min": safe_get_float("woodland_p_min", 0.2),
+		"p_max": safe_get_float("woodland_p_max", 0.6),
+	}
+
 func test_biome_scatter():
+	build_biome_thresholds()
+	
 	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "woodland"]
 	var biome_props_list = [ocean_props, desert_props, grassland_props, savanna_props, tundra_props, boreal_forest_props, temperate_forest_props, rainforest_props, mountain_props, woodland_props]
 	var biome_counts_list = [ocean_counts, desert_counts, grassland_counts, savanna_counts, tundra_counts, boreal_forest_counts, temperate_forest_counts, rainforest_counts, mountain_counts, woodland_counts]
@@ -161,6 +272,10 @@ func test_biome_scatter():
 		var biome_name = biome_names[i]
 		var selected_props = biome_props_list[i]
 		var selected_counts = biome_counts_list[i]
+		var biome_threshold = biome_thresholds[biome_name]
+		
+		print("DEBUG [%s]: Checking biome (Elev: %.2f-%.2f)..." % [biome_name, biome_threshold["e_min"], biome_threshold["e_max"]])
+		print("  Props array size: %d" % selected_props.size())
 		
 		if selected_props.is_empty():
 			print("⊘ Skipped %s (no props assigned)" % biome_name)
@@ -177,10 +292,13 @@ func test_biome_scatter():
 						"scene": prop_data.scene,
 						"proportionality": prop_data.proportionality
 					})
+				print("  Loaded prop: %s (x%d)" % [prop_data.scene.resource_path.get_file(), count])
 		
 		if loaded_props.is_empty():
 			print("⊘ Skipped %s (no valid props)" % biome_name)
 			continue
+		
+		print("  Total loaded props for %s: %d instances" % [biome_name, loaded_props.size()])
 		
 		var total_proportionality = 0.0
 		for prop in loaded_props:
@@ -192,8 +310,7 @@ func test_biome_scatter():
 		add_child(scatter_container)
 		
 		var spawned_count = 0
-		
-		current_biome_thresholds = biome_thresholds[biome_name]
+		var biome_match_count = 0
 		
 		var prop_instances: Dictionary = {}
 		var max_offset = terrain_size / 2.0 - (grid_spacing * boundary_margin)
@@ -202,20 +319,27 @@ func test_biome_scatter():
 		while x < max_offset:
 			var z = -max_offset
 			while z < max_offset:
-				if is_selected_biome(x, z):
+				var height = sample_terrain_height(x, z)
+				var normalized_height = inverse_lerp(water_top, water_top + 200.0, height)
+				normalized_height = clamp(normalized_height, 0.0, 1.0)
+				
+				if is_selected_biome(x, z, normalized_height, biome_threshold):
+					biome_match_count += 1
 					if randf() < base_spawn_density:
 						var varied_x = clamp(x + randf_range(-position_variance, position_variance), -max_offset, max_offset)
 						var varied_z = clamp(z + randf_range(-position_variance, position_variance), -max_offset, max_offset)
 						
-						if not is_selected_biome(varied_x, varied_z):
+						var varied_height = sample_terrain_height(varied_x, varied_z)
+						var varied_normalized = inverse_lerp(water_top, water_top + 200.0, varied_height)
+						varied_normalized = clamp(varied_normalized, 0.0, 1.0)
+						
+						if not is_selected_biome(varied_x, varied_z, varied_normalized, biome_threshold):
 							z += grid_spacing
 							continue
 						
-						var height = sample_terrain_height(varied_x, varied_z)
-						
-						if height > water_top:
+						if varied_height > water_top:
 							var selected_prop = select_weighted_prop(loaded_props, total_proportionality)
-							var final_pos = Vector3(varied_x, height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
+							var final_pos = Vector3(varied_x, varied_height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
 							var rotation = Vector3(randf_range(-rotation_variance, rotation_variance), randf() * TAU + randf_range(-rotation_variance, rotation_variance), randf_range(-rotation_variance, rotation_variance))
 							var scale = Vector3.ONE * (1.0 + randf_range(-scale_variance, scale_variance))
 							
@@ -231,6 +355,8 @@ func test_biome_scatter():
 				z += grid_spacing
 			x += grid_spacing
 		
+		print("  Biome matches found: %d" % biome_match_count)
+		
 		for scene_path in prop_instances:
 			var scene = load(scene_path)
 			if not scene:
@@ -244,8 +370,9 @@ func test_biome_scatter():
 			
 			scene_instance.queue_free()
 		
-		print("✓ %s: %d assets" % [biome_name, spawned_count])
+		print("✓ %s: %d assets (from %d matches)" % [biome_name, spawned_count, biome_match_count])
 		total_spawned += spawned_count
+		print("")
 	
 	print("\n=== SPAWN COMPLETE ===")
 	print("✓ Total spawned: %d assets" % total_spawned)
@@ -322,20 +449,30 @@ func select_weighted_prop(props: Array, total: float) -> Dictionary:
 			return prop
 	return props[0]
 
-func is_selected_biome(x: float, z: float) -> bool:
+func is_selected_biome(x: float, z: float, normalized_elevation: float, thresholds: Dictionary) -> bool:
+	# PRIMARY CHECK: Elevation must match
+	var e_min = thresholds["e_min"]
+	var e_max = thresholds["e_max"]
+	
+	if normalized_elevation < e_min or normalized_elevation > e_max:
+		return false
+	
+	# SECONDARY CHECK: Climate characteristics
 	var uv = Vector2((x + terrain_size / 2.0) / terrain_size, (z + terrain_size / 2.0) / terrain_size).clamp(Vector2.ZERO, Vector2.ONE)
 	var temp = temp_img.get_pixel(int(uv.x * temp_img.get_width()), int(uv.y * temp_img.get_height())).r
 	var hum = hum_img.get_pixel(int(uv.x * hum_img.get_width()), int(uv.y * hum_img.get_height())).r
 	var precip = precip_img.get_pixel(int(uv.x * precip_img.get_width()), int(uv.y * precip_img.get_height())).r
 	
-	var t_min = current_biome_thresholds["t_min"]
-	var t_max = current_biome_thresholds["t_max"]
-	var h_min = current_biome_thresholds["h_min"]
-	var h_max = current_biome_thresholds["h_max"]
-	var p_min = current_biome_thresholds["p_min"]
-	var p_max = current_biome_thresholds["p_max"]
+	var t_min = thresholds["t_min"]
+	var t_max = thresholds["t_max"]
+	var h_min = thresholds["h_min"]
+	var h_max = thresholds["h_max"]
+	var p_min = thresholds["p_min"]
+	var p_max = thresholds["p_max"]
 	
-	return (temp >= t_min and temp <= t_max and hum >= h_min and hum <= h_max and precip >= p_min and precip <= p_max)
+	return (temp >= t_min and temp <= t_max and 
+			hum >= h_min and hum <= h_max and 
+			precip >= p_min and precip <= p_max)
 
 func sample_terrain_height(x: float, z: float) -> float:
 	if not is_inside_tree():
@@ -353,6 +490,7 @@ func find_all_mesh_instances(node: Node) -> Array:
 	return meshes
 
 func verify_biome_spawn():
+	build_biome_thresholds()
 	print("\n=== BIOME SPAWN VERIFICATION (All Biomes) ===\n")
 	
 	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "woodland"]
@@ -371,42 +509,30 @@ func verify_biome_spawn():
 	var humidity_tex = shader_mat.get_shader_parameter("humidity_map") as Texture2D
 	var precipitation_tex = shader_mat.get_shader_parameter("precipitation_map") as Texture2D
 	
-	var temp_img = temperature_tex.get_image()
-	var hum_img = humidity_tex.get_image()
-	var precip_img = precipitation_tex.get_image()
+	var temp_img_local = temperature_tex.get_image()
+	var hum_img_local = humidity_tex.get_image()
+	var precip_img_local = precipitation_tex.get_image()
 	
 	var water_top = water_mesh.global_position.y + (water_mesh.mesh.get_aabb().size.y / 2.0)
 	
 	for biome_name in biome_names:
-		var t_min = biome_thresholds[biome_name]["t_min"]
-		var t_max = biome_thresholds[biome_name]["t_max"]
-		var h_min = biome_thresholds[biome_name]["h_min"]
-		var h_max = biome_thresholds[biome_name]["h_max"]
-		var p_min = biome_thresholds[biome_name]["p_min"]
-		var p_max = biome_thresholds[biome_name]["p_max"]
+		var biome_threshold = biome_thresholds[biome_name]
 		
 		var biome_points = 0
 		var non_biome_points = 0
 		
-		for i in range(5):
+		for i in range(20):
 			var x = randf_range(-terrain_size/2.0, terrain_size/2.0)
 			var z = randf_range(-terrain_size/2.0, terrain_size/2.0)
 			
-			var uv = Vector2((x + terrain_size / 2.0) / terrain_size, (z + terrain_size / 2.0) / terrain_size)
-			uv = uv.clamp(Vector2.ZERO, Vector2.ONE)
-			
-			var temp = temp_img.get_pixel(int(uv.x * temp_img.get_width()), int(uv.y * temp_img.get_height())).r
-			var hum = hum_img.get_pixel(int(uv.x * hum_img.get_width()), int(uv.y * hum_img.get_height())).r
-			var precip = precip_img.get_pixel(int(uv.x * precip_img.get_width()), int(uv.y * precip_img.get_height())).r
-			
-			var space_state = get_world_3d().direct_space_state
-			var ray_result = space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(x, 500, z), Vector3(x, -500, z)))
-			var height = ray_result.position.y if ray_result else 0.0
+			var height = sample_terrain_height(x, z)
+			var normalized_height = inverse_lerp(water_top, water_top + 200.0, height)
+			normalized_height = clamp(normalized_height, 0.0, 1.0)
 			
 			if height <= water_top:
 				continue
 			
-			var in_biome = (temp >= t_min and temp <= t_max and hum >= h_min and hum <= h_max and precip >= p_min and precip <= p_max)
+			var in_biome = is_selected_biome(x, z, normalized_height, biome_threshold)
 			
 			if in_biome:
 				biome_points += 1
@@ -415,4 +541,4 @@ func verify_biome_spawn():
 		
 		var total = biome_points + non_biome_points
 		var percentage = (float(biome_points) / total * 100.0) if total > 0 else 0.0
-		print("%s: %.1f%% (%d/%d)" % [biome_name, percentage, biome_points, total])
+		print("%s: %.1f%% (%d/%d) | Elev: %.2f-%.2f" % [biome_name, percentage, biome_points, total, biome_threshold["e_min"], biome_threshold["e_max"]])

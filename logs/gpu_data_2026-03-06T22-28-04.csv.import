@@ -3,11 +3,13 @@
 importer="csv_translation"
 type="Translation"
 uid="uid://d25qlykvovt3x"
-valid=false
 
 [deps]
 
+files=["res://logs/gpu_data_2026-03-06T22-28-04.GPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-28-04.CPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-28-04.Draw Calls.translation", "res://logs/gpu_data_2026-03-06T22-28-04.Video Memory (MB).translation", "res://logs/gpu_data_2026-03-06T22-28-04.FPS.translation"]
+
 source_file="res://logs/gpu_data_2026-03-06T22-28-04.csv"
+dest_files=["res://logs/gpu_data_2026-03-06T22-28-04.GPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-28-04.CPU Frame Time (ms).translation", "res://logs/gpu_data_2026-03-06T22-28-04.Draw Calls.translation", "res://logs/gpu_data_2026-03-06T22-28-04.Video Memory (MB).translation", "res://logs/gpu_data_2026-03-06T22-28-04.FPS.translation"]
 
 [params]
 

@@ -122,7 +122,7 @@ func generate_terrain():
 
 # Texture Setup for Shader
 func setup_biome_textures(shader_material: ShaderMaterial):
-	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "alpine_tundra"]
+	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "woodland"]
 	
 	for biome in biome_names:
 		var texture_path = "res://Assets/Materials/" + biome + ".tres"
