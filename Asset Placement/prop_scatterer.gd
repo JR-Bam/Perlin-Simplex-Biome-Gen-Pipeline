@@ -287,12 +287,18 @@ func test_biome_scatter():
 			var count = selected_counts[j] if j < selected_counts.size() else 1
 			
 			if prop_data and prop_data.scene and count > 0:
+				# Get the original scale from the scene
+				var scene_instance_temp = prop_data.scene.instantiate()
+				var original_scale = scene_instance_temp.scale
+				scene_instance_temp.queue_free()
+				
 				for _k in range(count):
 					loaded_props.append({
 						"scene": prop_data.scene,
-						"proportionality": prop_data.proportionality
+						"proportionality": prop_data.proportionality,
+						"original_scale": original_scale
 					})
-				print("  Loaded prop: %s (x%d)" % [prop_data.scene.resource_path.get_file(), count])
+				print("  Loaded prop: %s (x%d, scale: %.2f)" % [prop_data.scene.resource_path.get_file(), count, original_scale.x])
 		
 		if loaded_props.is_empty():
 			print("⊘ Skipped %s (no valid props)" % biome_name)
@@ -341,11 +347,15 @@ func test_biome_scatter():
 							var selected_prop = select_weighted_prop(loaded_props, total_proportionality)
 							var final_pos = Vector3(varied_x, varied_height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
 							var rotation = Vector3(randf_range(-rotation_variance, rotation_variance), randf() * TAU + randf_range(-rotation_variance, rotation_variance), randf_range(-rotation_variance, rotation_variance))
-							var scale = Vector3.ONE * (1.0 + randf_range(-scale_variance, scale_variance))
+							
+							# Use the stored original scale and multiply by variance
+							var original_scale = selected_prop.get("original_scale", Vector3.ONE)
+							var variance_scale = 1.0 + randf_range(-scale_variance, scale_variance)
+							var final_scale = original_scale * variance_scale
 							
 							var transform = Transform3D()
 							transform.origin = final_pos
-							transform.basis = Basis.from_euler(rotation).scaled(scale)
+							transform.basis = Basis.from_euler(rotation).scaled(final_scale)
 							
 							var scene_key = selected_prop["scene"].resource_path
 							if not prop_instances.has(scene_key):

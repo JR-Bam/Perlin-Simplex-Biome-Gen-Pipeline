@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://dcjjev8tip4oq"]
+
+[ext_resource type="ArrayMesh" uid="uid://jsfd424rn1x6" path="res://Assets/Models/temperate_forest_tree_trunk_2.res" id="1_3hcae"]
+[ext_resource type="ArrayMesh" uid="uid://dvtmw5hjcwi4m" path="res://Assets/Models/temperate_forest_tree_leaves_2.res" id="2_0aquo"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0q3rh"]
+radius = 0.203247
+height = 6.46373
+
+[node name="TemperateForestTree2" type="Node3D"]
+transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0, 0)
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_3hcae")
+
+[node name="Leaves" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_0aquo")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.07004, 0)
+shape = SubResource("CapsuleShape3D_0q3rh")
