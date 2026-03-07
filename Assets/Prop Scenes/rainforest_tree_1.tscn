@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://scxg6lh5ipnq"]
+
+[ext_resource type="ArrayMesh" uid="uid://7yofcrfoaufv" path="res://Assets/Models/rainforest_tree_trunk_1.res" id="1_c2fgv"]
+[ext_resource type="ArrayMesh" uid="uid://da8tjkjvq57w3" path="res://Assets/Models/rainforest_tree_leaves_1.res" id="2_ussfn"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_0g7cm"]
+radius = 0.383924
+height = 6.22872
+
+[node name="RainforestTree1" type="Node3D"]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0, 0)
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_c2fgv")
+
+[node name="Leaves" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_ussfn")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.84967, 0)
+shape = SubResource("CapsuleShape3D_0g7cm")

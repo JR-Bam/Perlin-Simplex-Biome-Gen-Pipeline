@@ -287,18 +287,31 @@ func test_biome_scatter():
 			var count = selected_counts[j] if j < selected_counts.size() else 1
 			
 			if prop_data and prop_data.scene and count > 0:
-				# Get the original scale from the scene
+				# Get the original scale and rotation from the scene
 				var scene_instance_temp = prop_data.scene.instantiate()
 				var original_scale = scene_instance_temp.scale
+				var original_rotation = scene_instance_temp.rotation
 				scene_instance_temp.queue_free()
+				
+				# Get per-prop density if available, otherwise use base spawn density
+				var prop_density = base_spawn_density
+				if prop_data.has_meta("spawn_density"):
+					var meta_density = prop_data.get_meta("spawn_density")
+					if meta_density > 0.0:
+						prop_density = meta_density
+				elif "spawn_density" in prop_data:
+					if prop_data.spawn_density > 0.0:
+						prop_density = prop_data.spawn_density
 				
 				for _k in range(count):
 					loaded_props.append({
 						"scene": prop_data.scene,
 						"proportionality": prop_data.proportionality,
-						"original_scale": original_scale
+						"original_scale": original_scale,
+						"original_rotation": original_rotation,
+						"spawn_density": prop_density
 					})
-				print("  Loaded prop: %s (x%d, scale: %.2f)" % [prop_data.scene.resource_path.get_file(), count, original_scale.x])
+				print("  Loaded prop: %s (x%d, scale: %.2f, density: %.2f)" % [prop_data.scene.resource_path.get_file(), count, original_scale.x, prop_density])
 		
 		if loaded_props.is_empty():
 			print("⊘ Skipped %s (no valid props)" % biome_name)
@@ -331,7 +344,9 @@ func test_biome_scatter():
 				
 				if is_selected_biome(x, z, normalized_height, biome_threshold):
 					biome_match_count += 1
-					if randf() < base_spawn_density:
+					# Use per-prop density instead of base spawn density
+					var selected_prop = select_weighted_prop(loaded_props, total_proportionality)
+					if randf() < selected_prop.get("spawn_density", base_spawn_density):
 						var varied_x = clamp(x + randf_range(-position_variance, position_variance), -max_offset, max_offset)
 						var varied_z = clamp(z + randf_range(-position_variance, position_variance), -max_offset, max_offset)
 						
@@ -344,9 +359,15 @@ func test_biome_scatter():
 							continue
 						
 						if varied_height > water_top:
-							var selected_prop = select_weighted_prop(loaded_props, total_proportionality)
 							var final_pos = Vector3(varied_x, varied_height + randf_range(-height_variance * 0.2, height_variance * 0.2), varied_z)
-							var rotation = Vector3(randf_range(-rotation_variance, rotation_variance), randf() * TAU + randf_range(-rotation_variance, rotation_variance), randf_range(-rotation_variance, rotation_variance))
+							
+							# Preserve original X rotation, randomize Y and Z
+							var original_rotation = selected_prop.get("original_rotation", Vector3.ZERO)
+							var final_rotation = Vector3(
+								original_rotation.x,  # Keep original X rotation
+								randf() * TAU,  # Fully randomize Y rotation
+								randf_range(-rotation_variance, rotation_variance)  # Slight randomize Z
+							)
 							
 							# Use the stored original scale and multiply by variance
 							var original_scale = selected_prop.get("original_scale", Vector3.ONE)
@@ -355,7 +376,7 @@ func test_biome_scatter():
 							
 							var transform = Transform3D()
 							transform.origin = final_pos
-							transform.basis = Basis.from_euler(rotation).scaled(final_scale)
+							transform.basis = Basis.from_euler(final_rotation).scaled(final_scale)
 							
 							var scene_key = selected_prop["scene"].resource_path
 							if not prop_instances.has(scene_key):

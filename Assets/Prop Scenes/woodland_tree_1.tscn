@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://db55tkmjgggx5"]
+
+[ext_resource type="ArrayMesh" uid="uid://bejbkjwpxjyrj" path="res://Assets/Models/woodland_tree_trunk_1.res" id="1_0awuo"]
+[ext_resource type="ArrayMesh" uid="uid://bek62gkex386d" path="res://Assets/Models/woodland_tree_leaves_1.res" id="2_rikhl"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3nsxv"]
+radius = 0.189968
+height = 8.33549
+
+[node name="WoodlandTree1" type="Node3D"]
+
+[node name="Trunk" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_0awuo")
+
+[node name="Leaves" type="MeshInstance3D" parent="."]
+mesh = ExtResource("2_rikhl")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.59557, 0)
+shape = SubResource("CapsuleShape3D_3nsxv")

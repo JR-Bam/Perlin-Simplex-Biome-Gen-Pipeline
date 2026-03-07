@@ -69,6 +69,24 @@ _subresources={
 "save_to_file/enabled": true,
 "save_to_file/path": "res://Assets/Models/temperate_forest_tree_leaves_2.res"
 },
+"Sketchfab_Scene_Object_35": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_tree_trunk_1.res"
+},
+"Sketchfab_Scene_Object_36": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_tree_leaves_1.res"
+},
 "Sketchfab_Scene_Object_39": {
 "generate/lightmap_uv": 0,
 "generate/lods": 0,
@@ -104,6 +122,42 @@ _subresources={
 "lods/normal_split_angle": 25.0,
 "save_to_file/enabled": true,
 "save_to_file/path": "res://Assets/Models/rainforest_tree_leaves_1.res"
+},
+"Sketchfab_Scene_Object_48": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_tree_trunk_2.res"
+},
+"Sketchfab_Scene_Object_49": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_tree_leaves_2.res"
+},
+"Sketchfab_Scene_Object_8": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_shrub_trunk_1.res"
+},
+"Sketchfab_Scene_Object_9": {
+"generate/lightmap_uv": 0,
+"generate/lods": 0,
+"generate/shadow_meshes": 0,
+"lods/normal_merge_angle": 60.0,
+"lods/normal_split_angle": 25.0,
+"save_to_file/enabled": true,
+"save_to_file/path": "res://Assets/Models/woodland_shrub_leaves_1.res"
 }
 }
 }
