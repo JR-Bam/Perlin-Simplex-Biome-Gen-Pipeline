@@ -1,0 +1,62 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3lqsx420nikb"]
+
+[ext_resource type="Script" path="res://ui/main_menu.gd" id="1_yjhom"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_qxc2d"]
+line_spacing = 10.0
+font_size = 50
+shadow_size = 6
+shadow_color = Color(0, 0.666667, 0.545098, 0.705882)
+
+[node name="MainMenu" type="Control"]
+layout_direction = 2
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_yjhom")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_bottom = 100
+
+[node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+text = "Terrain Generator
+"
+label_settings = SubResource("LabelSettings_qxc2d")
+
+[node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Start"
+
+[node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 20
+
+[node name="NoiseOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer2"]
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Simplex"
+popup/item_1/text = "Perlin"
+popup/item_1/id = 1

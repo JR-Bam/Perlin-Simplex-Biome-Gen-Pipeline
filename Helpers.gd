@@ -128,6 +128,34 @@ static func save_noise(simplex_texture: SimplexTexture, perlin_texture: NoiseTex
 	else:
 		print("Perlin texture not ready or null")
 
+static func _get_indent(level: int) -> String:
+	var indent = ""
+	for i in range(level):
+		indent += "  "
+	return indent
+
+static func format_dict(data, indent_level: int) -> String:
+	var result = ""
+	var indent = _get_indent(indent_level)
+	
+	if data is Dictionary:
+		var keys = data.keys()
+		keys.sort()
+		
+		for key in keys:
+			var value = data[key]
+			var formatted_key = key.capitalize().replace("_", " ")
+			
+			if value is Dictionary:
+				result += indent + formatted_key + ":\n"
+				result += format_dict(value, indent_level + 1)
+			else:
+				result += indent + formatted_key + ": %d ms\n" % value
+	else:
+		result += indent + str(data) + "\n"
+	
+	return result
+
 static func _noise_to_texture(size, texture, noise):
 	texture.set_width(size)
 	texture.set_height(size)

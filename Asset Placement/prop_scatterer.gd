@@ -90,10 +90,10 @@ var precip_img: Image
 
 var biome_thresholds = {}
 
-func _ready():
-	if not Engine.is_editor_hint():
-		await get_tree().process_frame
-		test_biome_scatter()
+#func _ready():
+	#if not Engine.is_editor_hint():
+		#await get_tree().process_frame
+		#test_biome_scatter()
 
 func _enter_tree():
 	if Engine.is_editor_hint():

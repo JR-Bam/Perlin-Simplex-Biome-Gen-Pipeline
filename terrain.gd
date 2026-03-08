@@ -13,6 +13,9 @@ enum CombinationMethod {
 	RIDGES                   # Erosion emphasizes ridges
 }
 
+# Add this signal
+signal terrain_progress(percent: float, stage: String)
+
 var Climate: ClimateData = load("res://Climate Maps/climate_data.tres")
 var Elevation: ElevationData = load("res://Terrain Maps/elevation_data.tres")
 
@@ -39,65 +42,78 @@ var mesh: ArrayMesh
 			
 @export var global_visibility_distance: float = 100.0  # Global far distance
 
+@onready var prop_scatterer: PropScatterer = $PropScatterer
+@onready var water: MeshInstance3D = $Water
+var execution_times = {}
+
 func _ready() -> void:
+	print("Terrain generating with noise: %d" % Config.noise_type)
 	terrain = $MeshInstance3D
 	mesh = ArrayMesh.new()
 	terrain.mesh = mesh
-	generate_terrain()
+	await generate_terrain_async()
+	if water.mesh:
+		water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
+		water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
+	#prop_scatterer.test_biome_scatter()
 
-func generate_terrain():
+func generate_terrain_async():
+	var start_time = Time.get_ticks_msec()
 	if not is_inside_tree() or terrain == null:
 		terrain = get_node_or_null("MeshInstance3D") 
 		if terrain == null: return
 	
 	print("Terrain node check: Passed")
+	terrain_progress.emit(0, "Starting terrain generation")
 	
-	# Get configuration values
 	var size := Config.size
 	var subdivisions := Config.subdivisions
 	var amplitude := Config.amplitude
 	
-	# Calculate grid parameters
 	var step := size / float(subdivisions)
 	var vertex_count_x := subdivisions + 1
 	var vertex_count_z := subdivisions + 1
 	var total_vertices := vertex_count_x * vertex_count_z
 	var total_indices := subdivisions * subdivisions * 6
 	
-	# Get noise instances
 	var base_noise = get_base_noise()
 	var erosion_noise = get_erosion_noise()
 	
-	# METHOD 1: Using MeshDataTool (Cleaner approach)
 	var surface_tool = SurfaceTool.new()
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-	# Generate vertices
+	# Generate vertices with async breaks
+	var vertex_gen_start = Time.get_ticks_msec()
+	var total_rows = vertex_count_z
 	for z in range(vertex_count_z):
 		for x in range(vertex_count_x):
 			var world_x := (x - subdivisions/2.0) * step
 			var world_z := (z - subdivisions/2.0) * step
 			
-			# Sample noise
 			var base_value := base_noise.get_noise_2d(world_x, world_z) as float
 			var erosion_value := erosion_noise.get_noise_2d(world_x, world_z) as float
-			
-			# Calculate height
 			var height = combine_terrain(base_value, erosion_value, world_x, world_z, amplitude)
 			
-			# Set UV
 			var uv = Vector2(float(x) / subdivisions, float(z) / subdivisions)
-			
-			# Add vertex with SurfaceTool
 			surface_tool.set_uv(uv)
 			surface_tool.add_vertex(Vector3(world_x, height, world_z))
+		
+		# Update progress - vertex generation is about 20% of total work
+		var progress = 10.0 + (float(z) / total_rows) * 15.0  # 10-25%
+		terrain_progress.emit(progress, "Generating vertices")
+		
+		# Yield every few rows to prevent freezing
+		if z % 10 == 0:
+			await get_tree().process_frame
+	
+	execution_times["vertex_generation"] = Time.get_ticks_msec() - vertex_gen_start
 	
 	# Generate triangles
+	var triangle_gen_start = Time.get_ticks_msec()
+	var total_triangle_rows = subdivisions
 	for z in range(subdivisions):
 		for x in range(subdivisions):
 			var i := z * vertex_count_x + x
-			
-			# Add two triangles
 			surface_tool.add_index(i)
 			surface_tool.add_index(i + 1)
 			surface_tool.add_index(i + vertex_count_x)
@@ -105,26 +121,120 @@ func generate_terrain():
 			surface_tool.add_index(i + 1)
 			surface_tool.add_index(i + vertex_count_x + 1)
 			surface_tool.add_index(i + vertex_count_x)
+		
+		# Update progress - triangle generation is about 15% of total work
+		var progress = 25.0 + (float(z) / total_triangle_rows) * 15.0  # 25-40%
+		terrain_progress.emit(progress, "Generating triangles")
+		
+		if z % 10 == 0:
+			await get_tree().process_frame
 	
-	# Generate normals and commit mesh
+	execution_times["triangle_generation"] = Time.get_ticks_msec() - triangle_gen_start
+	
+	# Generate normals and commit
+	terrain_progress.emit(42, "Generating normals")
 	surface_tool.generate_normals()
-	
-	# Clear old mesh and add new surface
 	mesh.clear_surfaces()
 	surface_tool.commit(mesh)
+	await get_tree().process_frame
 	
-	# Optional: Generate collision
-	textureize(size)
+	# Textureize (40% of total work)
+	terrain_progress.emit(45, "Texturing terrain")
+	var texture_start = Time.get_ticks_msec()
+	await get_tree().process_frame
+	await textureize(size)  # Make this async and track progress inside
+	
+	# Create collision (15% of total work)
+	terrain_progress.emit(85, "Creating collision")
+	var collision_start = Time.get_ticks_msec()
+	await get_tree().process_frame
 	create_collision()
+	execution_times["collision_creation"] = Time.get_ticks_msec() - collision_start
 	
+	# Complete
+	terrain_progress.emit(100, "Complete")
+	execution_times["total_terrain"] = Time.get_ticks_msec() - start_time
 	print(Config.noise_type, " Terrain Generated")
-	print("Terrain generated with ", total_vertices, " vertices using method: ", CombinationMethod.keys()[combination_method])
+	print("Execution times: ", execution_times)
+
+# Modified textureize to be async and emit progress
+func textureize(size):
+	var times = {}
+	var section_start
+	
+	# Temperature texture (10% of texturization work)
+	section_start = Time.get_ticks_msec()
+	print("Generate Temperature Texture")
+	terrain_progress.emit(47, "Generating temperature map")
+	var temperature = Helpers._noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin
+	)
+	await _wait_for_texture(temperature)
+	times["temperature_texture"] = Time.get_ticks_msec() - section_start
+	
+	# Precipitation texture (10% of texturization work)
+	section_start = Time.get_ticks_msec()
+	print("Generate Precipitation Texture")
+	terrain_progress.emit(57, "Generating precipitation map")
+	var precipitation = Helpers._noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.precipitation_simplex if Config.noise_type == 0 else Climate.precipitation_perlin
+	)
+	await _wait_for_texture(precipitation)
+	times["precipitation_texture"] = Time.get_ticks_msec() - section_start
+	
+	# Humidity texture (10% of texturization work)
+	section_start = Time.get_ticks_msec()
+	print("Generate Humidity Texture")
+	terrain_progress.emit(67, "Generating humidity map")
+	var humidity = Helpers._noise_to_texture(size, 
+		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
+		Climate.humidity_simplex if Config.noise_type == 0 else Climate.humidity_perlin
+	)
+	await _wait_for_texture(humidity)
+	times["humidity_texture"] = Time.get_ticks_msec() - section_start
+	
+	# Shader material creation (5% of texturization work)
+	section_start = Time.get_ticks_msec()
+	print("Creating shader material")
+	terrain_progress.emit(77, "Creating shader material")
+	var shadermat := ShaderMaterial.new()
+	shadermat.shader = shader
+	shadermat.set_shader_parameter("temperature_map", temperature)
+	shadermat.set_shader_parameter("precipitation_map", precipitation)
+	shadermat.set_shader_parameter("humidity_map", humidity)
+	shadermat.set_shader_parameter("max_height", Config.amplitude)
+	
+	Helpers._set_biome_thresholds(shadermat, Config)
+	setup_biome_textures(shadermat)
+	times["shader_creation"] = Time.get_ticks_msec() - section_start
+	
+	# Apply material (5% of texturization work)
+	section_start = Time.get_ticks_msec()
+	terrain_progress.emit(82, "Applying material")
+	terrain.set_surface_override_material(0, shadermat)
+	times["apply_material"] = Time.get_ticks_msec() - section_start
+	
+	# Calculate total
+	var total = 0
+	for key in times:
+		total += times[key]
+	times["total_texturization"] = total
+	
+	execution_times["texturization"] = times
+
+# Helper function to wait for a texture to generate
+func _wait_for_texture(texture: Texture2D):
+	while texture.get_image() == null or texture.get_image().is_empty():
+		await get_tree().process_frame
 
 # Texture Setup for Shader
 func setup_biome_textures(shader_material: ShaderMaterial):
 	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "woodland"]
 	
-	for biome in biome_names:
+	for i in range(biome_names.size()):
+		var biome = biome_names[i]
 		var texture_path = "res://Assets/Materials/" + biome + ".tres"
 		var texture = load(texture_path) as Texture2D
 		
@@ -133,6 +243,9 @@ func setup_biome_textures(shader_material: ShaderMaterial):
 			print("Loaded texture for: ", biome)
 		else:
 			print("WARNING: Could not load texture for: ", biome, " from ", texture_path)
+		
+		# Optional: emit progress for biome texture loading
+		# terrain_progress.emit(82.0 + (float(i) / biome_names.size()) * 3.0, "Loading biome textures")
 
 func combine_terrain(base_value: float, erosion_value: float, x: float, z: float, amplitude: float) -> float:
 	match combination_method:
@@ -188,76 +301,13 @@ func create_collision():
 	collision.shape = collision_shape
 	static_body.position = terrain.position
 
-func textureize(size):
-	var elevation = _combine_elevation_with_erosion(size, get_base_noise(), get_erosion_noise())
-	var temperature = Helpers._noise_to_texture(size, 
-		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin
-	)
-	var precipitation = Helpers._noise_to_texture(size, 
-		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.precipitation_simplex if Config.noise_type == 0 else Climate.precipitation_perlin
-	)
-	var humidity = Helpers._noise_to_texture(size, 
-		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.humidity_simplex if Config.noise_type == 0 else Climate.humidity_perlin
-	)
-	
-	var shadermat := ShaderMaterial.new()
-	shadermat.shader = shader
-	shadermat.set_shader_parameter("elevation_map", elevation)
-	shadermat.set_shader_parameter("temperature_map", temperature)
-	shadermat.set_shader_parameter("precipitation_map", precipitation)
-	shadermat.set_shader_parameter("humidity_map", humidity)
-	shadermat.set_shader_parameter("max_height", Config.amplitude)
-	
-	Helpers._set_biome_thresholds(shadermat, Config)
-	setup_biome_textures(shadermat)
-	
-	terrain.set_surface_override_material(0, shadermat)
-
-
-func _combine_elevation_with_erosion(size: int, base_noise, erosion_noise) -> ImageTexture:
-	var image := Image.create(size, size, false, Image.FORMAT_RF)
-	
-	# Use the same step and offset as in generate_terrain()
-	var step = Config.size / float(Config.subdivisions)
-	var half_size = Config.size / 2.0
-
-	for x in range(size):
-		for y in range(size):
-			# Map pixel to world coordinates (x → world_x, y → world_z)
-			var world_x = (x - Config.subdivisions / 2.0) * step
-			var world_z = (y - Config.subdivisions / 2.0) * step
-
-			# Get raw noise values (range -1..1)
-			var base_val = base_noise.get_noise_2d(world_x, world_z)
-			var erosion_val = erosion_noise.get_noise_2d(world_x, world_z)
-
-			# Combine using the same method and parameters as the terrain
-			var height = combine_terrain(
-				base_val,
-				erosion_val,
-				world_x,
-				world_z,
-				Config.amplitude
-			)
-
-			# Normalize to 0..1 for the texture
-			var normalized = (height + Config.amplitude) / (2.0 * Config.amplitude)
-			normalized = clamp(normalized, 0.0, 1.0)
-			image.set_pixel(x, y, Color(normalized, normalized, normalized))
-
-	return ImageTexture.create_from_image(image)
-
-
-
-
 func regenerate():
 	print("Regenerating terrain with method: ", CombinationMethod.keys()[combination_method])
-	if mesh:
-		mesh.clear_surfaces()
-	generate_terrain()
+	if water.mesh:
+		water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
+		water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
+	terrain_progress.emit(0, "Regenerating terrain")
+	await generate_terrain_async()
 
 func get_base_noise() -> Variant:
 	return Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin
