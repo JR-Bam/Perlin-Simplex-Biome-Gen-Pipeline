@@ -7,10 +7,16 @@ extends Control
 @onready var terrain_timing_label: Label = $TerrainTracker/ProgressTiming
 @onready var terrain_status: Label = $TerrainTracker/ProgressStatus
 
+@onready var scatter_progress_bar: ProgressBar = $ScatterTracker/ProgressBar
+@onready var scatter_timing_label: Label = $ScatterTracker/ScrollContainer/ProgressTiming
+@onready var scatter_status: Label = $ScatterTracker/ProgressStatus
+@onready var scatter_biome: Label = $ScatterTracker/ProgressBiome
+
 var load_start_time: float
 var main_scene_loaded_time: float
 var main_scene_instance: Node
 var terrain_node: Node
+var scatter_node: Node
 
 const MAIN_SCENE_NAME = "res://main.tscn"
 
@@ -38,18 +44,45 @@ func _on_scene_loaded(path: String):
 		# No terrain found, just mark as complete
 		terrain_status.text = "Status: No terrain found"
 		terrain_progress_bar.value = 100
+	
+	scatter_node = main_scene_instance.get_node_or_null("Terrain/PropScatterer")
+	if scatter_node and scatter_node.has_signal("scatter_progress"):
+		scatter_status.text = "Status: Scattering props..."
+		scatter_node.scatter_progress.connect(_on_scatter_progress)
+	else:
+		# No scatter found, just mark as complete
+		scatter_status.text = "Status: No prop scatterer found"
+		terrain_progress_bar.value = 100
 
 func _on_terrain_progress(percent: float, stage: String):
 	terrain_progress_bar.value = percent
 	terrain_status.text = "Stage: %s" % stage  # Stage goes to status label
 	
 	if percent >= 100:
-		var total_time = Time.get_ticks_msec() - load_start_time
 		
 		# Get detailed execution times from terrain
 		var times = terrain_node.execution_times
 		var timing_text := Helpers.format_dict(times, 0)
 		
+		timing_text += "\nTotal: %d ms" % times["TOTAL"]
+		
 		# Update the timing label with detailed info
 		terrain_timing_label.text = timing_text
+		# Status already shows "Complete" from the stage parameter
+
+func _on_scatter_progress(percent: float, stage: String, biome: String):
+	scatter_progress_bar.value = percent
+	scatter_status.text = "Stage: %s" % stage  # Stage goes to status label
+	scatter_biome.text = "Biome: %s" % biome
+	
+	if percent >= 100:
+		
+		# Get detailed execution times from prop scatterer
+		var times = scatter_node.execution_times
+		var timing_text := Helpers.format_dict(times, 0)
+		
+		timing_text += "\nTotal: %d ms" % times["TOTAL"]
+		
+		# Update the timing label with detailed info
+		scatter_timing_label.text = timing_text
 		# Status already shows "Complete" from the stage parameter

@@ -36,6 +36,7 @@ text = "Total Load:"
 label_settings = ExtResource("3_cnxog")
 
 [node name="TerrainTracker" type="VBoxContainer" parent="."]
+layout_mode = 0
 offset_left = 26.0
 offset_top = 123.0
 offset_right = 224.0
@@ -57,6 +58,41 @@ text = "Status:"
 label_settings = ExtResource("3_cnxog")
 
 [node name="ProgressTiming" type="Label" parent="TerrainTracker"]
+layout_mode = 2
+label_settings = ExtResource("3_cnxog")
+
+[node name="ScatterTracker" type="VBoxContainer" parent="."]
+offset_left = 930.0
+offset_top = 24.0
+offset_right = 1128.0
+offset_bottom = 114.0
+
+[node name="ProgressLabel" type="Label" parent="ScatterTracker"]
+layout_mode = 2
+text = "Prop Scatterer
+"
+label_settings = ExtResource("3_cnxog")
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="ScatterTracker"]
+layout_mode = 2
+
+[node name="ProgressStatus" type="Label" parent="ScatterTracker"]
+layout_mode = 2
+text = "Status:"
+label_settings = ExtResource("3_cnxog")
+
+[node name="ProgressBiome" type="Label" parent="ScatterTracker"]
+layout_mode = 2
+text = "Biome:"
+label_settings = ExtResource("3_cnxog")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ScatterTracker"]
+custom_minimum_size = Vector2(0, 500)
+layout_mode = 2
+follow_focus = true
+
+[node name="ProgressTiming" type="Label" parent="ScatterTracker/ScrollContainer"]
 layout_mode = 2
 label_settings = ExtResource("3_cnxog")
 

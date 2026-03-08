@@ -52,10 +52,8 @@ func _ready() -> void:
 	mesh = ArrayMesh.new()
 	terrain.mesh = mesh
 	await generate_terrain_async()
-	if water.mesh:
-		water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
-		water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
-	#prop_scatterer.test_biome_scatter()
+	update_water()
+	prop_scatterer.test_biome_scatter()
 
 func generate_terrain_async():
 	var start_time = Time.get_ticks_msec()
@@ -152,8 +150,8 @@ func generate_terrain_async():
 	execution_times["collision_creation"] = Time.get_ticks_msec() - collision_start
 	
 	# Complete
+	execution_times["TOTAL"] = Time.get_ticks_msec() - start_time
 	terrain_progress.emit(100, "Complete")
-	execution_times["total_terrain"] = Time.get_ticks_msec() - start_time
 	print(Config.noise_type, " Terrain Generated")
 	print("Execution times: ", execution_times)
 
@@ -303,11 +301,17 @@ func create_collision():
 
 func regenerate():
 	print("Regenerating terrain with method: ", CombinationMethod.keys()[combination_method])
+	terrain_progress.emit(0, "Regenerating terrain")
+	await generate_terrain_async()
+	update_water()
+	prop_scatterer.test_biome_scatter()
+
+
+func update_water():
 	if water.mesh:
 		water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
 		water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
-	terrain_progress.emit(0, "Regenerating terrain")
-	await generate_terrain_async()
+
 
 func get_base_noise() -> Variant:
 	return Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin

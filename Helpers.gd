@@ -143,14 +143,18 @@ static func format_dict(data, indent_level: int) -> String:
 		keys.sort()
 		
 		for key in keys:
+			if key in ["TOTAL", "misc"]: continue
+			
 			var value = data[key]
 			var formatted_key = key.capitalize().replace("_", " ")
 			
 			if value is Dictionary:
 				result += indent + formatted_key + ":\n"
 				result += format_dict(value, indent_level + 1)
-			else:
+			elif value is int:
 				result += indent + formatted_key + ": %d ms\n" % value
+			else:
+				result += indent + formatted_key + ": " + str(value) + "\n"
 	else:
 		result += indent + str(data) + "\n"
 	

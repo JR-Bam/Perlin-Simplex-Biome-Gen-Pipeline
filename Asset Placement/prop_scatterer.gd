@@ -3,10 +3,16 @@ extends Node3D
 
 class_name PropScatterer
 
+# Add this signal
+signal scatter_progress(percent: float, stage: String, biome: String)
+
 var Config: WorldConfigResource = load("res://world_config.tres")
 var temp_img: Image
 var hum_img: Image
 var precip_img: Image
+
+# Add execution times dictionary
+var execution_times: Dictionary = {}
 
 @export_group("Debug")
 @export var debug_spawn: bool = false:
@@ -223,6 +229,9 @@ func build_biome_thresholds():
 	}
 
 func test_biome_scatter():
+	var start_time = Time.get_ticks_msec()
+	execution_times.clear()
+	
 	build_biome_thresholds()
 	
 	var biome_names = ["ocean", "desert", "grassland", "savanna", "tundra", "boreal_forest", "temperate_forest", "rainforest", "mountain", "woodland"]
@@ -231,6 +240,7 @@ func test_biome_scatter():
 
 	seed(spawn_seed)
 	print("=== Scattering ALL Biomes (Seed: %d) ===" % spawn_seed)
+	scatter_progress.emit(1, "Initializing", "all")
 
 	var old_containers = get_tree().get_nodes_in_group("scatter_container")
 	for container in old_containers:
@@ -267,8 +277,13 @@ func test_biome_scatter():
 	print("")
 	
 	var total_spawned = 0
+	var biome_times = {}
 	
 	for i in range(biome_names.size()):
+		var biome_start = Time.get_ticks_msec()
+		var progress_base = 10.0 + (float(i) / biome_names.size()) * 80.0
+		scatter_progress.emit(progress_base, "Processing", biome_names[i])
+		
 		var biome_name = biome_names[i]
 		var selected_props = biome_props_list[i]
 		var selected_counts = biome_counts_list[i]
@@ -279,8 +294,11 @@ func test_biome_scatter():
 		
 		if selected_props.is_empty():
 			print("⊘ Skipped %s (no props assigned)" % biome_name)
+			biome_times[biome_name] = {"total": Time.get_ticks_msec() - biome_start, "skipped": true}
 			continue
 		
+		# Track prop loading time
+		var prop_load_start = Time.get_ticks_msec()
 		var loaded_props = []
 		for j in range(selected_props.size()):
 			var prop_data = selected_props[j]
@@ -315,7 +333,10 @@ func test_biome_scatter():
 		
 		if loaded_props.is_empty():
 			print("⊘ Skipped %s (no valid props)" % biome_name)
+			biome_times[biome_name] = {"total": Time.get_ticks_msec() - biome_start, "skipped": true}
 			continue
+		
+		var prop_load_time = Time.get_ticks_msec() - prop_load_start
 		
 		print("  Total loaded props for %s: %d instances" % [biome_name, loaded_props.size()])
 		
@@ -334,10 +355,21 @@ func test_biome_scatter():
 		var prop_instances: Dictionary = {}
 		var max_offset = terrain_size / 2.0 - (grid_spacing * boundary_margin)
 		
+		# Track scanning time
+		var scan_start = Time.get_ticks_msec()
 		var x = -max_offset
+		var grid_cells = 0
+		var total_cells = int((max_offset * 2) / grid_spacing) ** 2
+		
 		while x < max_offset:
 			var z = -max_offset
 			while z < max_offset:
+				grid_cells += 1
+				if grid_cells % 1000 == 0:
+					await get_tree().process_frame
+					var grid_progress = progress_base + (float(grid_cells) / total_cells) * 10.0
+					scatter_progress.emit(min(grid_progress, progress_base + 10.0), "Scanning", biome_name)
+				
 				var height = sample_terrain_height(x, z)
 				var normalized_height = inverse_lerp(water_top, water_top + 200.0, height)
 				normalized_height = clamp(normalized_height, 0.0, 1.0)
@@ -386,7 +418,13 @@ func test_biome_scatter():
 				z += grid_spacing
 			x += grid_spacing
 		
+		var scan_time = Time.get_ticks_msec() - scan_start
+		
 		print("  Biome matches found: %d" % biome_match_count)
+		
+		# Track LOD creation time for this biome
+		var lod_start = Time.get_ticks_msec()
+		var lod_count = 0
 		
 		for scene_path in prop_instances:
 			var scene = load(scene_path)
@@ -398,18 +436,68 @@ func test_biome_scatter():
 			
 			if all_meshes.size() > 0:
 				_create_chunked_lods(scatter_container, all_meshes, prop_instances[scene_path])
+				lod_count += prop_instances[scene_path].size()
 			
 			scene_instance.queue_free()
 		
+		var lod_time = Time.get_ticks_msec() - lod_start
+		
 		print("✓ %s: %d assets (from %d matches)" % [biome_name, spawned_count, biome_match_count])
 		total_spawned += spawned_count
+		
+		# Store detailed times for this biome
+		biome_times[biome_name] = {
+			"total": Time.get_ticks_msec() - biome_start,
+			"prop_loading": prop_load_time,
+			"scanning": scan_time,
+			"lod_creation": lod_time,
+			"misc": {
+				"grid_cells": grid_cells,
+				"spawned": spawned_count,
+				"matches": biome_match_count,
+			}
+		}
 		print("")
 	
 	print("\n=== SPAWN COMPLETE ===")
 	print("✓ Total spawned: %d assets" % total_spawned)
+	scatter_progress.emit(95, "Creating global LODs", "all")
+	var global_lod_start = Time.get_ticks_msec()
 	await get_tree().process_frame
 	var lod_instances = get_tree().get_nodes_in_group("lod_instance")
+	var global_lod_time = Time.get_ticks_msec() - global_lod_start
+	
+	execution_times["TOTAL"] = Time.get_ticks_msec() - start_time
+	execution_times["global_lod_count"] = lod_instances.size()
+	execution_times["global_lod_creation"] = global_lod_time
+	execution_times["biome_details"] = biome_times
+	
+	scatter_progress.emit(100, "Complete", "all")
+	
+	print("\n=== SPAWN COMPLETE ===")
+	print("✓ Total spawned: %d assets" % total_spawned)
 	print("✓ Total LOD instances: %d" % lod_instances.size())
+	print("=== Detailed Execution Times ===")
+	
+	var total_biome_time = 0
+	for biome in biome_times:
+		var data = biome_times[biome]
+		if data is Dictionary and data.has("skipped") and data["skipped"]:
+			print("  %s: SKIPPED" % biome)
+		else:
+			print("  %s:" % biome)
+			print("    Total: %d ms" % data["total"])
+			print("    Prop Loading: %d ms" % data["prop_loading"])
+			print("    Scanning: %d ms" % data["scanning"])
+			print("    LOD Creation: %d ms" % data["lod_creation"])
+			print("    Spawned: %d" % data["misc"]["spawned"])
+			print("    Matches: %d" % data["misc"]["matches"])
+			print("    Grid Cells: %d" % data["misc"]["grid_cells"])
+			total_biome_time += data["total"]
+	
+	print("  Global LOD creation: %d ms" % global_lod_time)
+	print("  TOTAL: %d ms" % execution_times["TOTAL"])
+	print("  (Biome sum: %d ms)" % total_biome_time)
 
 func _create_chunked_lods(parent: Node3D, meshes: Array, transforms: Array) -> void:
 	if transforms.is_empty():
