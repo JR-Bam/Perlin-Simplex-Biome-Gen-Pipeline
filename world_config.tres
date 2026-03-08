@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3 uid="uid://df0hs86y4b3jh"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_wurno"]
 
