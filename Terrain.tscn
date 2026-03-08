@@ -196,7 +196,7 @@ scene = ExtResource("7_c2lxe")
 proportionality = 20.0
 spawn_density = 0.0
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_lgm7m"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_sdxrm"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uu5a5"]
 render_priority = 0
@@ -227,6 +227,7 @@ combination_method = 3
 erosion_strength = 0.2
 blend_weight = 1.0
 terrace_count = 12
+update = false
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
@@ -253,7 +254,7 @@ mountain_props = Array[ExtResource("4_lstpu")]([SubResource("Resource_qusry"), S
 woodland_props = Array[ExtResource("4_lstpu")]([SubResource("Resource_u8hxu"), SubResource("Resource_npvdq"), SubResource("Resource_lipak"), SubResource("Resource_pdggp")])
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-mesh = SubResource("ArrayMesh_lgm7m")
+mesh = SubResource("ArrayMesh_sdxrm")
 metadata/_edit_lock_ = true
 
 [node name="Water" type="MeshInstance3D" parent="."]
