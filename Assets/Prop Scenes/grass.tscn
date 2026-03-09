@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://gar6n3l112or"]
+
+[ext_resource type="ArrayMesh" uid="uid://c1l43ydllkwe3" path="res://Assets/Models/grass.res" id="1_aiokf"]
+
+[node name="Grass" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -258.268, 0, 0)
+mesh = ExtResource("1_aiokf")

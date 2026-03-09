@@ -271,7 +271,7 @@ func test_biome_scatter():
 		print("ERROR: Invalid texture images!")
 		return
 	
-	var water_top = water_mesh.global_position.y
+	var water_top = water_mesh.global_position.y - 2
 	
 	print("LOD: near=%.0f mid=%.0f far=%.0f max=%.0f" % [lod_near_distance, lod_mid_distance, lod_far_distance, lod_max_distance])
 	print("")
