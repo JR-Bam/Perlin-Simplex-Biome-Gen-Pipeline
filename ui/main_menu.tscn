@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://c3lqsx420nikb"]
+[gd_scene load_steps=4 format=3 uid="uid://c3lqsx420nikb"]
 
 [ext_resource type="Script" path="res://ui/main_menu.gd" id="1_yjhom"]
 
@@ -7,6 +7,9 @@ line_spacing = 10.0
 font_size = 50
 shadow_size = 6
 shadow_color = Color(0, 0.666667, 0.545098, 0.705882)
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_fas7p"]
+load_path = "res://.godot/imported/file-export-solid.svg-878b1a1f0b7dde4526d940f7ec94cdf9.ctex"
 
 [node name="MainMenu" type="Control"]
 layout_direction = 2
@@ -34,17 +37,23 @@ alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/margin_bottom = 100
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_bottom = 50
 
 [node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer"]
 layout_mode = 2
 text = "Terrain Generator
 "
 label_settings = SubResource("LabelSettings_qxc2d")
+horizontal_alignment = 1
 
 [node name="StartButton" type="Button" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 text = "Start"
+
+[node name="ExportProgress" type="ProgressBar" parent="CenterContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
 
 [node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
@@ -60,3 +69,34 @@ item_count = 2
 popup/item_0/text = "Simplex"
 popup/item_1/text = "Perlin"
 popup/item_1/id = 1
+
+[node name="MarginContainer3" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 20
+
+[node name="WorldSizeOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer3"]
+layout_mode = 2
+selected = 0
+item_count = 3
+popup/item_0/text = "Small"
+popup/item_1/text = "Medium"
+popup/item_1/id = 1
+popup/item_2/text = "Large"
+popup/item_2/id = 2
+
+[node name="MarginContainer4" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 20
+
+[node name="ExportButton" type="Button" parent="CenterContainer/VBoxContainer/MarginContainer4"]
+layout_mode = 2
+text = "Export Noise Maps"
+icon = SubResource("CompressedTexture2D_fas7p")
+alignment = 0
+icon_alignment = 2
+expand_icon = true

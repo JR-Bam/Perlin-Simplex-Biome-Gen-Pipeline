@@ -6,19 +6,35 @@ extends Node
 var file: FileAccess
 var elapsed_time = 0.0
 var sample_interval = 0.1  # Sample every 0.1 seconds
-var is_logging = true
+var is_logging = false  # Start as false, only true when manually started
 var main_viewport_rid: RID
 
 func _ready():
 	# Store the main viewport RID
 	main_viewport_rid = get_viewport().get_viewport_rid()
 	
+	# Don't enable GPU measurement or start logging automatically
+	# Wait for explicit function call
+
+func start_logging():
+	if is_logging:
+		print("GPU Logger: Already logging")
+		return
+	
+	# Ensure any previous file is closed
+	if file:
+		stop_logging()
+	
 	# ⚠️ IMPORTANT: Enable GPU time measurement on the viewport
 	RenderingServer.viewport_set_measure_render_time(main_viewport_rid, true)
 	
+	# Create logs directory if it doesn't exist
+	var logs_dir = "user://logs/"
+	DirAccess.make_dir_absolute(logs_dir)
+	
 	# Generate filename with timestamp
 	var timestamp = Time.get_datetime_string_from_system().replace(":", "-").replace(" ", "_")
-	var filename = "res://logs/gpu_data_%s.csv" % timestamp
+	var filename = logs_dir + "gpu_data_%s.csv" % timestamp
 	
 	# Create/open the file
 	file = FileAccess.open(filename, FileAccess.WRITE)
@@ -26,6 +42,8 @@ func _ready():
 	if file:
 		# Write CSV header
 		file.store_line("Timestamp (s),GPU Frame Time (ms),CPU Frame Time (ms),Draw Calls,Video Memory (MB),FPS")
+		is_logging = true
+		elapsed_time = 0.0
 		print("GPU Logger started: ", ProjectSettings.globalize_path(filename))
 	else:
 		printerr("GPU Logger: Failed to create log file!")
@@ -58,38 +76,23 @@ func _process(delta):
 		elapsed_time = 0.0
 
 func get_gpu_frame_time() -> float:
-	# Now this will return actual values since measurement is enabled
+	# Now this will return actual values since measurement is enabled when logging starts
 	return RenderingServer.viewport_get_measured_render_time_gpu(main_viewport_rid)
 
 func get_cpu_frame_time() -> float:
 	return RenderingServer.viewport_get_measured_render_time_cpu(main_viewport_rid)
 
 func stop_logging():
-	is_logging = false
-	if file:
-		file = null
+	if is_logging:
+		is_logging = false
+		if file:
+			file = null
 		print("GPU Logger: Logging stopped")
-
-func start_logging():
-	if file:
-		stop_logging()
-	
-	# Re-enable measurement (in case it was disabled somehow)
-	RenderingServer.viewport_set_measure_render_time(main_viewport_rid, true)
-	
-	var timestamp = Time.get_datetime_string_from_system().replace(":", "-").replace(" ", "_")
-	var filename = "user://gpu_data_%s.csv" % timestamp
-	file = FileAccess.open(filename, FileAccess.WRITE)
-	
-	if file:
-		file.store_line("Timestamp (s),GPU Frame Time (ms),CPU Frame Time (ms),Draw Calls,Video Memory (MB),FPS")
-		is_logging = true
-		elapsed_time = 0.0
-		print("GPU Logger: Started new log: ", ProjectSettings.globalize_path(filename))
+		
+		# Optional: Disable GPU measurement when stopping
+		if main_viewport_rid.is_valid():
+			RenderingServer.viewport_set_measure_render_time(main_viewport_rid, false)
 
 # Clean up when game exits
 func _exit_tree():
-	# Optional: Disable measurement when done (good practice)
-	if main_viewport_rid.is_valid():
-		RenderingServer.viewport_set_measure_render_time(main_viewport_rid, false)
 	stop_logging()
