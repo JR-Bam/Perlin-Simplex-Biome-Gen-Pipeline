@@ -62,6 +62,7 @@ layout_mode = 2
 label_settings = ExtResource("3_cnxog")
 
 [node name="ScatterTracker" type="VBoxContainer" parent="."]
+layout_mode = 0
 offset_left = 930.0
 offset_top = 24.0
 offset_right = 1128.0

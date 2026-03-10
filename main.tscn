@@ -17,7 +17,12 @@ sky_material = SubResource("ProceduralSkyMaterial_32j78")
 [sub_resource type="Environment" id="Environment_55tdv"]
 background_mode = 2
 sky = SubResource("Sky_4hbe1")
-fog_density = 0.003
+fog_enabled = true
+fog_light_color = Color(0.517647, 0.552941, 0.768627, 1)
+fog_density = 0.005
+fog_sky_affect = 0.585
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0
 
 [sub_resource type="QuadMesh" id="QuadMesh_iqgin"]
 lightmap_size_hint = Vector2i(50002, 50002)
@@ -49,8 +54,7 @@ cloudsCutoff = 0.58
 cloudsFloor = 100.0
 globalCloudScale = 5000.0
 sunColorDefault = Color(0.866279, 0.946515, 0.9751, 1)
-useFogDefault = false
-fogColorDefault = Color(0.518, 0.553, 0.608, 1)
+fogColorDefault = Color(0.517647, 0.552941, 0.768627, 1)
 
 [node name="Terrain" parent="." instance=ExtResource("6_xvm0r")]
 

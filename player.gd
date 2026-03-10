@@ -9,6 +9,7 @@ var camera: Camera3D
 
 # References to PropScatterer
 var prop_scatterer: PropScatterer
+@onready var Config: WorldConfigResource = preload("res://world_config.tres")
 
 func _ready():
 	camera = $Head/Camera3D
@@ -19,6 +20,7 @@ func _ready():
 	await get_tree().process_frame
 	await get_tree().process_frame
 	
+	global_position = Vector3(0, Config.amplitude * 3, 0)
 	# Find the PropScatterer in the scene
 	prop_scatterer = get_tree().root.find_child("PropScatterer", true, false) as PropScatterer
 	

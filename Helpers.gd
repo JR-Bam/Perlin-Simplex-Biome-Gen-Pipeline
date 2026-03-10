@@ -1,6 +1,8 @@
 extends Node
 class_name Helpers
 
+
+
 static func _set_biome_thresholds(shader_material: ShaderMaterial, config: WorldConfigResource):
 	# Ocean Thresholds
 	shader_material.set_shader_parameter("ocean_e_min", config.ocean_e_min)
@@ -161,6 +163,8 @@ static func format_dict(data, indent_level: int) -> String:
 	return result
 
 static func _noise_to_texture(size, texture, noise):
+	var Config: WorldConfigResource = load("res://world_config.tres")
+	noise.set_seed(Config.seed)
 	texture.set_width(size)
 	texture.set_height(size)
 	texture.set_noise(noise)

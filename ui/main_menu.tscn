@@ -55,28 +55,18 @@ text = "Start"
 visible = false
 layout_mode = 2
 
-[node name="MarginContainer2" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 20
-
-[node name="NoiseOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer2"]
-layout_mode = 2
-selected = 0
-item_count = 2
-popup/item_0/text = "Simplex"
-popup/item_1/text = "Perlin"
-popup/item_1/id = 1
-
 [node name="MarginContainer3" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_right = 100
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 20
 
-[node name="WorldSizeOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer3"]
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/MarginContainer3"]
+layout_mode = 2
+alignment = 1
+
+[node name="WorldSizeOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
 layout_mode = 2
 selected = 0
 item_count = 3
@@ -85,6 +75,21 @@ popup/item_1/text = "Medium"
 popup/item_1/id = 1
 popup/item_2/text = "Large"
 popup/item_2/id = 2
+
+[node name="NoiseOption" type="OptionButton" parent="CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+selected = 0
+item_count = 2
+popup/item_0/text = "Simplex"
+popup/item_1/text = "Perlin"
+popup/item_1/id = 1
+
+[node name="SeedInput" type="LineEdit" parent="CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+placeholder_text = "Seed"
+alignment = 1
+virtual_keyboard_type = 2
+clear_button_enabled = true
 
 [node name="MarginContainer4" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2

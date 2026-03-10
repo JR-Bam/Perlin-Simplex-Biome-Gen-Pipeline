@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AssetMaps" load_steps=6 format=3 uid="uid://s6djdl60bhii"]
+
+[ext_resource type="Script" path="res://Asset Placement/AssetMaps.gd" id="1_l204p"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_bgtm2"]
+noise_type = 3
+
+[sub_resource type="Simplex" id="Simplex_wft1t"]
+seed = 4
+fractal_type = 1
+fractal_octaves = 5
+fractal_lacunarity = 2.0
+fractal_gain = 0.5
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dmrxr"]
+noise_type = 3
+seed = 3
+frequency = 0.02
+fractal_type = 0
+
+[sub_resource type="Simplex" id="Simplex_uoyxc"]
+seed = 3
+frequency = 0.02
+
+[resource]
+script = ExtResource("1_l204p")
+water_refraction_simplex = SubResource("Simplex_uoyxc")
+water_refraction_perlin = SubResource("FastNoiseLite_dmrxr")
+water_normal_simplex = SubResource("Simplex_wft1t")
+water_normal_perlin = SubResource("FastNoiseLite_bgtm2")

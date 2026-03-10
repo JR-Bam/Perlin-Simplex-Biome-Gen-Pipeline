@@ -4,11 +4,12 @@
 
 [resource]
 script = ExtResource("1_wurno")
-noise_type = 0
+noise_type = 1
 subdivisions = 128
 size = 1000
 amplitude = 70
 blend_radius = 0.06
+seed = 69
 ocean_e_min = 0.0
 ocean_e_max = 0.25
 ocean_t_min = 0.0

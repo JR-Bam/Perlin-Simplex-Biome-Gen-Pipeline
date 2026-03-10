@@ -6,6 +6,7 @@ class_name WorldConfigResource
 @export var size: int = 500
 @export var amplitude := 100
 @export var blend_radius: float = 0.05
+@export var seed: int = 0
 
 # Biome Thresholds - Updated realistic configuration with ~10% gaps
 @export_group("Ocean Thresholds")

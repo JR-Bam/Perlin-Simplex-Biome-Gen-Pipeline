@@ -18,8 +18,10 @@ signal terrain_progress(percent: float, stage: String)
 
 var Climate: ClimateData = load("res://Climate Maps/climate_data.tres")
 var Elevation: ElevationData = load("res://Terrain Maps/elevation_data.tres")
+var AssetNoiseMaps: AssetMaps = load("res://Asset Placement/asset_maps.tres")
 
 var shader: Shader = load("res://terrain_painter.gdshader")
+var water_material: ShaderMaterial = load("res://Asset Placement/water_mat.tres")
 
 var terrain: MeshInstance3D
 var mesh: ArrayMesh
@@ -53,7 +55,8 @@ func _ready() -> void:
 	terrain.mesh = mesh
 	await generate_terrain_async()
 	update_water()
-	prop_scatterer.test_biome_scatter()
+	await prop_scatterer.test_biome_scatter()
+	#Monitor.start_logging()
 
 func generate_terrain_async():
 	var start_time = Time.get_ticks_msec()
@@ -77,6 +80,9 @@ func generate_terrain_async():
 	var base_noise = get_base_noise()
 	var erosion_noise = get_erosion_noise()
 	
+	base_noise.set_seed(Config.seed)
+	erosion_noise.set_seed(Config.seed)
+	
 	var surface_tool = SurfaceTool.new()
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
@@ -90,6 +96,11 @@ func generate_terrain_async():
 			
 			var base_value := base_noise.get_noise_2d(world_x, world_z) as float
 			var erosion_value := erosion_noise.get_noise_2d(world_x, world_z) as float
+			
+			if Config.noise_type != 0:
+				base_value = base_value * 2.5  # empirical adjustment
+			else:
+				base_value = base_value * 1.4
 			var height = combine_terrain(base_value, erosion_value, world_x, world_z, amplitude)
 			
 			var uv = Vector2(float(x) / subdivisions, float(z) / subdivisions)
@@ -148,6 +159,8 @@ func generate_terrain_async():
 	await get_tree().process_frame
 	create_collision()
 	execution_times["collision_creation"] = Time.get_ticks_msec() - collision_start
+	
+	# Water update (will be called separately, but we'll log it there)
 	
 	# Complete
 	execution_times["TOTAL"] = Time.get_ticks_msec() - start_time
@@ -308,10 +321,62 @@ func regenerate():
 
 
 func update_water():
-	if water.mesh:
-		water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
-		water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
-
+	var water_start_time = Time.get_ticks_msec()
+	var water_times = {}
+	
+	if not water.mesh: 
+		execution_times["water_update"] = {"error": "No water mesh"}
+		return
+	
+	# Mesh configuration
+	var mesh_config_start = Time.get_ticks_msec()
+	water.mesh.size = Vector3(Config.size, Config.amplitude / 2, Config.size)
+	water.global_position = Vector3(0, (Config.ocean_e_max - 1) * Config.amplitude, 0)
+	water.mesh.subdivide_width = Config.subdivisions
+	water.mesh.subdivide_depth = Config.subdivisions
+	water_times["mesh_configuration"] = Time.get_ticks_msec() - mesh_config_start
+	
+	# Refraction texture creation (including noise retrieval)
+	var refraction_start = Time.get_ticks_msec()
+	var refraction_noise = AssetNoiseMaps.water_refraction_simplex if Config.noise_type == 0 else AssetNoiseMaps.water_refraction_perlin
+	refraction_noise.set_seed(Config.seed)
+	var refraction_texture = SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new()
+	refraction_texture.set_noise(refraction_noise)
+	refraction_texture.set_seamless(true)
+	water_times["refraction_texture"] = Time.get_ticks_msec() - refraction_start
+	
+	# Normal texture creation (including noise retrieval)
+	var normal_start = Time.get_ticks_msec()
+	var normal_noise = AssetNoiseMaps.water_normal_simplex if Config.noise_type == 0 else AssetNoiseMaps.water_normal_perlin
+	normal_noise.set_seed(Config.seed)
+	var normal_texture = SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new()
+	normal_texture.set_noise(normal_noise)
+	normal_texture.set_seamless(true)
+	normal_texture.set_as_normal_map(true)
+	normal_texture.set_in_3d_space(true)
+	water_times["normal_texture"] = Time.get_ticks_msec() - normal_start
+	
+	# Wait for textures to generate
+	var texture_wait_start = Time.get_ticks_msec()
+	await _wait_for_texture(refraction_texture)
+	await _wait_for_texture(normal_texture)
+	water_times["texture_generation_wait"] = Time.get_ticks_msec() - texture_wait_start
+	
+	# Shader parameter application
+	var shader_apply_start = Time.get_ticks_msec()
+	water_material.set_shader_parameter("texture_refraction", refraction_texture)
+	water_material.set_shader_parameter("texture_normal", normal_texture)
+	
+	water.mesh.material = water_material
+	water_times["shader_application"] = Time.get_ticks_msec() - shader_apply_start
+	
+	# Calculate total water update time
+	water_times["total_water_update"] = Time.get_ticks_msec() - water_start_time
+	
+	# Add to main execution_times dictionary
+	execution_times["water_update"] = water_times
+	
+	print("Water update times: ", water_times)
 
 func get_base_noise() -> Variant:
 	return Elevation.base_simplex if Config.noise_type == 0 else Elevation.base_perlin
