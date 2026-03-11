@@ -199,7 +199,8 @@ func textureize(size):
 	terrain_progress.emit(47, "Generating temperature map")
 	var temperature = Helpers._noise_to_texture(size, 
 		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin
+		Climate.temperature_simplex if Config.noise_type == 0 else Climate.temperature_perlin,
+		1
 	)
 	await _wait_for_texture(temperature)
 	times["temperature_texture"] = Time.get_ticks_msec() - section_start
@@ -210,7 +211,8 @@ func textureize(size):
 	terrain_progress.emit(57, "Generating precipitation map")
 	var precipitation = Helpers._noise_to_texture(size, 
 		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.precipitation_simplex if Config.noise_type == 0 else Climate.precipitation_perlin
+		Climate.precipitation_simplex if Config.noise_type == 0 else Climate.precipitation_perlin,
+		2
 	)
 	await _wait_for_texture(precipitation)
 	times["precipitation_texture"] = Time.get_ticks_msec() - section_start
@@ -221,7 +223,8 @@ func textureize(size):
 	terrain_progress.emit(67, "Generating humidity map")
 	var humidity = Helpers._noise_to_texture(size, 
 		SimplexTexture.new() if Config.noise_type == 0 else NoiseTexture2D.new(), 
-		Climate.humidity_simplex if Config.noise_type == 0 else Climate.humidity_perlin
+		Climate.humidity_simplex if Config.noise_type == 0 else Climate.humidity_perlin,
+		3
 	)
 	await _wait_for_texture(humidity)
 	times["humidity_texture"] = Time.get_ticks_msec() - section_start

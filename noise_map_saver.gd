@@ -157,7 +157,7 @@ func _save_perlin_maps(current_progress: int, total_maps: int, perlin_dir: Strin
 	
 	# Temperature Perlin
 	print("NoiseMapSaver: Generating Temperature Perlin...")
-	var perlin_temperature = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.temperature_perlin)
+	var perlin_temperature = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.temperature_perlin, 1)
 	success = await _wait_for_texture(perlin_temperature, "Temperature Perlin")
 	if not success or not is_saving:
 		return current_progress
@@ -173,7 +173,7 @@ func _save_perlin_maps(current_progress: int, total_maps: int, perlin_dir: Strin
 	
 	# Precipitation Perlin
 	print("NoiseMapSaver: Generating Precipitation Perlin...")
-	var perlin_precipitation = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.precipitation_perlin)
+	var perlin_precipitation = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.precipitation_perlin, 2)
 	success = await _wait_for_texture(perlin_precipitation, "Precipitation Perlin")
 	if not success or not is_saving:
 		return current_progress
@@ -189,7 +189,7 @@ func _save_perlin_maps(current_progress: int, total_maps: int, perlin_dir: Strin
 	
 	# Humidity Perlin
 	print("NoiseMapSaver: Generating Humidity Perlin...")
-	var perlin_humidity = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.humidity_perlin)
+	var perlin_humidity = Helpers._noise_to_texture(size, NoiseTexture2D.new(), climate_data.humidity_perlin, 3)
 	success = await _wait_for_texture(perlin_humidity, "Humidity Perlin")
 	if not success or not is_saving:
 		return current_progress
@@ -275,7 +275,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, simplex_dir: Str
 	
 	# Temperature Simplex
 	print("NoiseMapSaver: Generating Temperature Simplex...")
-	var simplex_temperature = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.temperature_simplex)
+	var simplex_temperature = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.temperature_simplex, 1)
 	success = await _wait_for_texture(simplex_temperature, "Temperature Simplex")
 	if not success or not is_saving:
 		return current_progress
@@ -291,7 +291,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, simplex_dir: Str
 	
 	# Precipitation Simplex
 	print("NoiseMapSaver: Generating Precipitation Simplex...")
-	var simplex_precipitation = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.precipitation_simplex)
+	var simplex_precipitation = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.precipitation_simplex, 2)
 	success = await _wait_for_texture(simplex_precipitation, "Precipitation Simplex")
 	if not success or not is_saving:
 		return current_progress
@@ -307,7 +307,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, simplex_dir: Str
 	
 	# Humidity Simplex
 	print("NoiseMapSaver: Generating Humidity Simplex...")
-	var simplex_humidity = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.humidity_simplex)
+	var simplex_humidity = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.humidity_simplex, 3)
 	success = await _wait_for_texture(simplex_humidity, "Humidity Simplex")
 	if not success or not is_saving:
 		return current_progress

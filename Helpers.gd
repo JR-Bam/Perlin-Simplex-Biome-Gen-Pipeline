@@ -162,9 +162,9 @@ static func format_dict(data, indent_level: int) -> String:
 	
 	return result
 
-static func _noise_to_texture(size, texture, noise):
+static func _noise_to_texture(size, texture, noise, offset = 0):
 	var Config: WorldConfigResource = load("res://world_config.tres")
-	noise.set_seed(Config.seed)
+	noise.set_seed(Config.seed + offset)
 	texture.set_width(size)
 	texture.set_height(size)
 	texture.set_noise(noise)
