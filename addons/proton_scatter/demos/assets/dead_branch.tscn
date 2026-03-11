@@ -4,6 +4,7 @@
 [ext_resource type="Material" uid="uid://d01d0h08lqqn6" path="res://addons/proton_scatter/demos/assets/materials/m_trunk.tres" id="2_tldro"]
 
 [node name="dead_branch" instance=ExtResource("1_5foyv")]
+transform = Transform3D(3, 0, 0, 0, 3, 0, 0, 0, 3, 0, 0, 0)
 
 [node name="DeadBranch" parent="." index="0"]
 surface_material_override/0 = ExtResource("2_tldro")

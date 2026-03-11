@@ -7,7 +7,7 @@ noise_type = 3
 seed = 69
 
 [sub_resource type="Simplex" id="Simplex_wft1t"]
-seed = 88
+seed = 3
 fractal_type = 1
 fractal_octaves = 5
 fractal_lacunarity = 2.0
@@ -20,7 +20,7 @@ frequency = 0.02
 fractal_type = 0
 
 [sub_resource type="Simplex" id="Simplex_uoyxc"]
-seed = 88
+seed = 3
 frequency = 0.02
 
 [resource]
