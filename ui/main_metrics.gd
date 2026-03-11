@@ -237,7 +237,23 @@ func export_execution_times_as_csv():
 	
 	# Create logs directory with size subfolder
 	var logs_dir = "user://init-gen-logs/%s/" % size_folder
-	DirAccess.make_dir_absolute(logs_dir)
+	
+	# Get absolute path for debugging
+	var absolute_path = ProjectSettings.globalize_path(logs_dir)
+	print("Attempting to create directory: ", absolute_path)
+	
+	# CREATE DIRECTORY WITH ERROR CHECKING
+	var dir = DirAccess.open("user://")
+	if dir:
+		var error = dir.make_dir_recursive("init-gen-logs/" + size_folder)
+		if error != OK:
+			printerr("Failed to create directory! Error: ", error_string(error))
+			return
+		else:
+			print("Directory created successfully")
+	else:
+		printerr("Failed to open user:// directory")
+		return
 	
 	# Generate noise type string
 	var noise = "Simplex" if Config.noise_type == 0 else "Perlin"
@@ -246,9 +262,58 @@ func export_execution_times_as_csv():
 	var timestamp = Time.get_datetime_string_from_system().replace(":", "-").replace(" ", "_")
 	var filename = logs_dir + "init_gen_data_%s_%s_Round%d.csv" % [timestamp, noise, Config.round]
 	
+	var absolute_file_path = ProjectSettings.globalize_path(filename)
+	print("Attempting to create file: ", absolute_file_path)
+	
+	# CHECK IF FILE ALREADY EXISTS AND CAN BE ACCESSED
+	var check_file = FileAccess.open(filename, FileAccess.READ)
+	if check_file:
+		print("File already exists, attempting to overwrite")
+		check_file.close()
+	
+	# TRY WITH SIMPLE FILENAME FIRST IN SAME DIRECTORY
+	var test_filename = logs_dir + "test_write.csv"
+	print("Testing write with: ", ProjectSettings.globalize_path(test_filename))
+	
+	var test_file = FileAccess.open(test_filename, FileAccess.WRITE)
+	if test_file:
+		print("✓ Test file created successfully!")
+		test_file.store_line("test")
+		test_file.close()
+		
+		# Verify we can read it
+		var verify = FileAccess.open(test_filename, FileAccess.READ)
+		if verify:
+			print("✓ Test file verified")
+			verify.close()
+			# Clean up test file
+			DirAccess.remove_absolute(test_filename)
+		else:
+			print("✗ Could not verify test file")
+	else:
+		var error = FileAccess.get_open_error()
+		printerr("✗ Failed to create test file! Error code: ", error)
+		printerr("Error description: ", error_string(error))
+		
+		# Try writing to user:// root as fallback
+		print("Attempting to write to user:// root...")
+		var root_test = FileAccess.open("user://root_test.csv", FileAccess.WRITE)
+		if root_test:
+			print("✓ Can write to user:// root")
+			root_test.close()
+			DirAccess.remove_absolute("user://root_test.csv")
+		else:
+			printerr("✗ Cannot write to user:// root either!")
+		return
+	
+	# If test passed, proceed with actual file creation
+	print("\n=== Test passed, creating actual file ===")
+	
 	# Create the CSV file
 	var file = FileAccess.open(filename, FileAccess.WRITE)
 	if file:
+		print("✓ Successfully opened file for writing!")
+		
 		# Prepare flattened data structures
 		var flattened_data = {
 			"terrain": flatten_dict(terrain_node.execution_times) if terrain_node else {},
@@ -273,13 +338,12 @@ func export_execution_times_as_csv():
 					all_keys.append(full_key)
 		
 		# Sort keys for consistent output (keeping metadata at the beginning)
-		# We'll manually ensure metadata stays first
 		var sorted_keys = []
 		sorted_keys.append("metadata/noise_type")
 		sorted_keys.append("metadata/round")
 		sorted_keys.append("metadata/seed")
 		
-		var remaining_keys = all_keys.slice(2)  # Remove metadata keys
+		var remaining_keys = all_keys.slice(3)  # Remove metadata keys
 		remaining_keys.sort()
 		sorted_keys += remaining_keys
 		
@@ -287,7 +351,7 @@ func export_execution_times_as_csv():
 		var readable_headers = []
 		for key in sorted_keys:
 			if key == "metadata/noise_type":
-				readable_headers.append("Algoruth")
+				readable_headers.append("Algorithm")  # Fixed typo
 			elif key == "metadata/round":
 				readable_headers.append("Round")
 			elif key == "metadata/seed":
@@ -296,9 +360,11 @@ func export_execution_times_as_csv():
 				readable_headers.append(get_readable_column_name(key))
 		
 		# Write header row with readable names
-		file.store_line(",".join(readable_headers))
+		var header_line = ",".join(readable_headers)
+		file.store_line(header_line)
+		print("Header written, length: ", header_line.length())
 		
-		# Write data row - we need to create one row with values from all categories
+		# Write data row
 		var row_values = []
 		for full_key in sorted_keys:
 			if full_key == "metadata/noise_type":
@@ -306,7 +372,7 @@ func export_execution_times_as_csv():
 			elif full_key == "metadata/round":
 				row_values.append(str(Config.round))
 			elif full_key == "metadata/seed":
-				row_values.append(Config.seed)
+				row_values.append(str(Config.seed))
 			else:
 				# Split into category and actual key path
 				var parts = full_key.split("/")
@@ -320,9 +386,26 @@ func export_execution_times_as_csv():
 				else:
 					row_values.append("")
 		
-		# Write the single data row
-		file.store_line(",".join(row_values))
-		file.close()
+		var data_line = ",".join(row_values)
+		file.store_line(data_line)
+		print("Data written, length: ", data_line.length())
 		
-		print("Execution times exported to: ", filename)
-		print("Headers: ", readable_headers)
+		file.close()
+		print("File closed")
+		
+		# Verify file was created
+		var verify_file = FileAccess.open(filename, FileAccess.READ)
+		if verify_file:
+			var content = verify_file.get_as_text()
+			print("✓ File verified! Size: ", content.length(), " bytes")
+			print("First 100 chars: ", content.substr(0, 100))
+			verify_file.close()
+			print("SUCCESS: Execution times exported to: ", absolute_file_path)
+		else:
+			printerr("✗ File was not created successfully!")
+	else:
+		var error = FileAccess.get_open_error()
+		printerr("✗ Failed to open file! Error code: ", error)
+		printerr("Error description: ", error_string(error))
+	
+	print("=== Export Complete ===")
