@@ -12,6 +12,7 @@ var main_viewport_rid: RID
 # Store Config values for logging
 var algorithm_name: String = "Unknown"
 var round_number: int = 0
+var seed: int
 
 func _ready():
 	print("RealTimeLogger: _ready() called")
@@ -57,6 +58,7 @@ func start_logging():
 	# Store Config values for logging
 	algorithm_name = "Simplex" if Config.noise_type == 0 else "Perlin"
 	round_number = Config.round
+	seed = Config.seed
 	
 	# Ensure any previous file is closed
 	if file:
@@ -114,7 +116,7 @@ func start_logging():
 	
 	if file:
 		# Write CSV header with new columns
-		file.store_line("Timestamp (s),GPU Frame Time (ms),CPU Frame Time (ms),Draw Calls,Video Memory (MB),FPS,Algorithm,Round")
+		file.store_line("Timestamp (s),GPU Frame Time (ms),CPU Frame Time (ms),Draw Calls,Video Memory (MB),FPS,Algorithm,Round,Seed")
 		# Flush to ensure header is written
 		file.flush()
 		
@@ -146,7 +148,7 @@ func _process(delta):
 		var fps = Performance.get_monitor(Performance.TIME_FPS)
 		
 		# Format: timestamp, gpu_time, cpu_time, draw_calls, video_mem, fps, algorithm, round
-		var line = "%.3f,%.3f,%.3f,%d,%.2f,%.1f,%s,%d" % [
+		var line = "%.3f,%.3f,%.3f,%d,%.2f,%.1f,%s,%d,%d" % [
 			Time.get_ticks_msec() / 1000.0,
 			gpu_time,
 			cpu_time,
@@ -154,7 +156,8 @@ func _process(delta):
 			video_mem,
 			fps,
 			algorithm_name,
-			round_number
+			round_number,
+			seed
 		]
 		
 		# Write line and flush immediately to ensure data is saved

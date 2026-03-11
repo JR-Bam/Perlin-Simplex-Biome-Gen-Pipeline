@@ -262,6 +262,7 @@ func export_execution_times_as_csv():
 		# Add metadata keys first
 		all_keys.append("metadata/noise_type")
 		all_keys.append("metadata/round")
+		all_keys.append("metadata/seed")
 		
 		# Add all data keys
 		for category in flattened_data:
@@ -276,6 +277,7 @@ func export_execution_times_as_csv():
 		var sorted_keys = []
 		sorted_keys.append("metadata/noise_type")
 		sorted_keys.append("metadata/round")
+		sorted_keys.append("metadata/seed")
 		
 		var remaining_keys = all_keys.slice(2)  # Remove metadata keys
 		remaining_keys.sort()
@@ -288,6 +290,8 @@ func export_execution_times_as_csv():
 				readable_headers.append("Algoruth")
 			elif key == "metadata/round":
 				readable_headers.append("Round")
+			elif key == "metadata/seed":
+				readable_headers.append("Seed")
 			else:
 				readable_headers.append(get_readable_column_name(key))
 		
@@ -301,6 +305,8 @@ func export_execution_times_as_csv():
 				row_values.append(noise)
 			elif full_key == "metadata/round":
 				row_values.append(str(Config.round))
+			elif full_key == "metadata/seed":
+				row_values.append(Config.seed)
 			else:
 				# Split into category and actual key path
 				var parts = full_key.split("/")
