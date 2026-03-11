@@ -1,15 +1,16 @@
-[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3 uid="uid://df0hs86y4b3jh"]
+[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3 uid="uid://djsmspg8flboh"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_wurno"]
 
 [resource]
 script = ExtResource("1_wurno")
-noise_type = 1
+noise_type = 0
 subdivisions = 128
 size = 1000
 amplitude = 70
 blend_radius = 0.06
-seed = 69
+seed = 3
+round = 2
 ocean_e_min = 0.0
 ocean_e_max = 0.25
 ocean_t_min = 0.0

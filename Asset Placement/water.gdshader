@@ -40,37 +40,37 @@ void vertex() {
 	// --- Wave displacement ---
 	// Get world position (before displacement)
 	vec3 world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	
+
 	// Simple wave: sum of two sines for more interesting pattern
 	float t = TIME * wave_speed;
 	float x = world_pos.x * wave_frequency;
 	float z = world_pos.z * wave_frequency;
 	float wave = sin(x + t) * sin(z * 0.8 + t * 1.3);  // combined wave
 	float offset = wave_height * wave;
-	
+
 	// Displace along the vertex normal (keeps volume changes uniform)
 	VERTEX += NORMAL * offset;
-	
+
 	// Alternative: displace vertically in world space (convert back to local)
 	// vec3 world_offset = vec3(0.0, offset, 0.0);
 	// VERTEX = (inverse(MODEL_MATRIX) * vec4(world_pos + world_offset, 1.0)).xyz;
-	
+
 	// --- Re‑compute world position for triplanar mapping (now using displaced VERTEX) ---
 	vec3 displaced_world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	
+
 	// --- Tangent / Binormal (unchanged from original, but you may want to update them based on the new geometry) ---
 	vec3 normal = MODEL_NORMAL_MATRIX * NORMAL;
-	
+
 	TANGENT = vec3(0.0, 0.0, -1.0) * abs(normal.x);
 	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.y);
 	TANGENT += vec3(1.0, 0.0, 0.0) * abs(normal.z);
 	TANGENT = inverse(MODEL_NORMAL_MATRIX) * normalize(TANGENT);
-	
+
 	BINORMAL = vec3(0.0, 1.0, 0.0) * abs(normal.x);
 	BINORMAL += vec3(0.0, 0.0, -1.0) * abs(normal.y);
 	BINORMAL += vec3(0.0, 1.0, 0.0) * abs(normal.z);
 	BINORMAL = inverse(MODEL_NORMAL_MATRIX) * normalize(BINORMAL);
-	
+
 	// --- Triplanar setup (using displaced world position) ---
 	uv1_power_normal = pow(abs(normal), vec3(uv1_blend_sharpness));
 	uv1_triplanar_pos = displaced_world_pos * uv1_scale + uv1_offset + TIME * 0.01;

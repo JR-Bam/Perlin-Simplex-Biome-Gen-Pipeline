@@ -9,8 +9,9 @@ extends Control
 
 @onready var seed_input: LineEdit = $CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer/SeedInput
 
-const CONFIG_PATH = "res://world_config.tres"
-var Config: WorldConfigResource = load(CONFIG_PATH)
+@onready var round_input: LineEdit = $CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer/RoundInput
+
+var Config: WorldConfigResource = load("res://world_config.tres")
 
 
 func _ready():
@@ -19,14 +20,17 @@ func _ready():
 
 func _on_start_pressed():
 	update_configs()
-	ResourceSaver.save(Config, CONFIG_PATH)
+	if Config.round == null: return
+	ResourceSaver.save(Config, "res://world_config.tres")
 	
 	print("Noise type: ", Config.noise_type)
 	get_tree().change_scene_to_file("res://ui/main_metrics.tscn")
 
 
 func _on_export_pressed():
+	print("Export pressed")
 	update_configs()
+	if Config.round == null: return
 	
 	start_button.disabled = true
 	start_button.visible = false
@@ -44,7 +48,8 @@ func update_configs():
 		0: Config.size = 1000
 		1: Config.size = 3000
 		2: Config.size = 5000
-	Config.seed = int(seed_input.text) if not seed_input.text.is_empty() else 0
+	Config.seed = int(seed_input.text) if not seed_input.text.is_empty() and seed_input.text.is_valid_int() else 0
+	Config.round = int(round_input.text) if not round_input.text.is_empty() and round_input.text.is_valid_int() else null
 
 func _on_save_progress(progress: int):
 	export_progress.value = progress

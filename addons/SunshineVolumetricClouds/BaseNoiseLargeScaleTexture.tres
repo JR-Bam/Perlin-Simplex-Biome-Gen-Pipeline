@@ -1,9 +1,9 @@
 [gd_resource type="NoiseTexture3D" load_steps=3 format=3 uid="uid://duqxdvvkivpvw"]
 
-[sub_resource type="Gradient" id="Gradient_3k2ch"]
-offsets = PackedFloat32Array(0.401408, 0.859551)
+[ext_resource type="Gradient" uid="uid://dxt6tsx2c0i2f" path="res://Asset Placement/large_scale_noise_color_ramp.tres" id="1_2q114"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_ostar"]
+noise_type = 3
 frequency = 0.2175
 fractal_lacunarity = 3.26
 
@@ -11,5 +11,5 @@ fractal_lacunarity = 3.26
 invert = true
 seamless = true
 seamless_blend_skirt = 0.4
-color_ramp = SubResource("Gradient_3k2ch")
+color_ramp = ExtResource("1_2q114")
 noise = SubResource("FastNoiseLite_ostar")

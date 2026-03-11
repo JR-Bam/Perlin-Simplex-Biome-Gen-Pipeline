@@ -91,6 +91,13 @@ alignment = 1
 virtual_keyboard_type = 2
 clear_button_enabled = true
 
+[node name="RoundInput" type="LineEdit" parent="CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+placeholder_text = "Round"
+alignment = 1
+virtual_keyboard_type = 2
+clear_button_enabled = true
+
 [node name="MarginContainer4" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 100

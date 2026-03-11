@@ -1,7 +1,7 @@
 [gd_resource type="NoiseTexture3D" load_steps=2 format=3 uid="uid://beujfcx2u0pqg"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_7o76k"]
-noise_type = 0
+noise_type = 3
 frequency = 0.0904
 fractal_lacunarity = 3.06
 fractal_gain = 0.15

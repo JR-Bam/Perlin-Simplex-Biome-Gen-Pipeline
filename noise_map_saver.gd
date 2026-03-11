@@ -6,6 +6,7 @@ signal saving_failed(error_message: String)
 
 var elevation_data: ElevationData = preload("res://Terrain Maps/elevation_data.tres")
 var climate_data: ClimateData = preload("res://Climate Maps/climate_data.tres")
+var asset_maps: AssetMaps = preload("res://Asset Placement/asset_maps.tres")
 
 var size = null
 var is_saving = false
@@ -22,55 +23,101 @@ func start():
 		print("NoiseMapSaver: Already saving, please wait...")
 		return
 	
+	var Config: WorldConfigResource = load("res://world_config.tres")
+	
 	is_saving = true
 	print("NoiseMapSaver: Starting to save noise maps...")
 	
-	# Create timestamp for this save session
-	var timestamp = Time.get_datetime_string_from_system().replace(":", "-").replace(" ", "_")
-	save_dir = "user://NoiseMaps_%s" % timestamp
+	# Create base directory structure: noise_maps/Size/Round/Algorithm
+	var base_dir = "user://noise_maps"
 	
-	# Create base directory
-	var error = DirAccess.make_dir_recursive_absolute(save_dir)
+	# Create base directory if it doesn't exist
+	var error = DirAccess.make_dir_recursive_absolute(base_dir)
 	if error != OK:
-		var error_msg = "NoiseMapSaver: Failed to create directory: " + save_dir
+		var error_msg = "NoiseMapSaver: Failed to create base directory: " + base_dir
 		print(error_msg)
 		saving_failed.emit(error_msg)
 		is_saving = false
 		return
 	
-	print("NoiseMapSaver: Created directory: ", save_dir)
+	# Determine size name
+	var size_name
+	if Config.size == 1000:
+		size_name = "Small"
+	elif Config.size == 3000:
+		size_name = "Medium"
+	elif Config.size == 5000:
+		size_name = "Large"
+	else:
+		size_name = str(Config.size)
+	
+	# Create size directory (Small/Medium/Large)
+	var size_dir = base_dir + "/" + size_name
+	error = DirAccess.make_dir_recursive_absolute(size_dir)
+	if error != OK:
+		var error_msg = "NoiseMapSaver: Failed to create size directory: " + size_dir
+		print(error_msg)
+		saving_failed.emit(error_msg)
+		is_saving = false
+		return
+	
+	# Create round directory (1, 2, 3, etc.)
+	var round_dir = size_dir + "/" + str(Config.round)
+	error = DirAccess.make_dir_recursive_absolute(round_dir)
+	if error != OK:
+		var error_msg = "NoiseMapSaver: Failed to create round directory: " + round_dir
+		print(error_msg)
+		saving_failed.emit(error_msg)
+		is_saving = false
+		return
+	
+	# Create Perlin and Simplex subdirectories inside the round directory
+	var perlin_dir = round_dir + "/Perlin"
+	error = DirAccess.make_dir_recursive_absolute(perlin_dir)
+	if error != OK:
+		var error_msg = "NoiseMapSaver: Failed to create Perlin directory: " + perlin_dir
+		print(error_msg)
+		saving_failed.emit(error_msg)
+		is_saving = false
+		return
+	
+	var simplex_dir = round_dir + "/Simplex"
+	error = DirAccess.make_dir_recursive_absolute(simplex_dir)
+	if error != OK:
+		var error_msg = "NoiseMapSaver: Failed to create Simplex directory: " + simplex_dir
+		print(error_msg)
+		saving_failed.emit(error_msg)
+		is_saving = false
+		return
+	
+	save_dir = round_dir  # Store the round directory as base for reference
+	print("NoiseMapSaver: Created directory structure: ", save_dir)
+	print("NoiseMapSaver: Perlin maps will be saved to: ", perlin_dir)
+	print("NoiseMapSaver: Simplex maps will be saved to: ", simplex_dir)
 	
 	# Start the saving process
-	_save_all_maps()
+	_save_all_maps(perlin_dir, simplex_dir)
 
-func _save_all_maps():
-	var total_maps = 10 # 5 Perlin + 5 Simplex
+func _save_all_maps(perlin_dir: String, simplex_dir: String):
+	var total_maps = 14  # 7 Perlin + 7 Simplex (5 terrain/climate + 4 asset maps)
 	var current_progress = 0
 	
-	# Save Perlin maps
-	current_progress = await _save_perlin_maps(current_progress, total_maps, save_dir)
+	# Save Perlin maps (Terrain, Climate, and Asset)
+	current_progress = await _save_perlin_maps(current_progress, total_maps, perlin_dir)
 	if not is_saving:  # Check if saving was cancelled
 		return
 	
-	# Save Simplex maps
-	await _save_simplex_maps(current_progress, total_maps, save_dir)
+	# Save Simplex maps (Terrain, Climate, and Asset)
+	current_progress = await _save_simplex_maps(current_progress, total_maps, simplex_dir)
+	if not is_saving:
+		return
 	
 	if is_saving:
 		print("NoiseMapSaver: All maps saved successfully!")
 		saving_completed.emit(save_dir)
 		is_saving = false
 
-func _save_perlin_maps(current_progress: int, total_maps: int, base_dir: String) -> int:
-	# Create Perlin subdirectory
-	var perlin_dir = base_dir + "/Perlin"
-	var error = DirAccess.make_dir_recursive_absolute(perlin_dir)
-	if error != OK:
-		var error_msg = "NoiseMapSaver: Failed to create Perlin directory"
-		print(error_msg)
-		saving_failed.emit(error_msg)
-		is_saving = false
-		return current_progress
-	
+func _save_perlin_maps(current_progress: int, total_maps: int, perlin_dir: String) -> int:
 	print("NoiseMapSaver: Saving Perlin maps to: ", perlin_dir)
 	
 	# Add small delay between operations to keep UI responsive
@@ -154,20 +201,42 @@ func _save_perlin_maps(current_progress: int, total_maps: int, base_dir: String)
 		saving_progress.emit(int(float(current_progress) / total_maps * 100))
 		print("NoiseMapSaver: Saved Humidity Perlin (Progress: ", current_progress, "/", total_maps, ")")
 	
+	await _yield_to_main_loop()
+	
+	# Water Refraction Perlin (from AssetMaps)
+	print("NoiseMapSaver: Generating Water Refraction Perlin...")
+	var perlin_water_refraction = Helpers._noise_to_texture(size, NoiseTexture2D.new(), asset_maps.water_refraction_perlin)
+	success = await _wait_for_texture(perlin_water_refraction, "Water Refraction Perlin")
+	if not success or not is_saving:
+		return current_progress
+	
+	image = perlin_water_refraction.get_image()
+	if image:
+		image.save_png(perlin_dir + "/WaterRefraction_Perlin.png")
+		current_progress += 1
+		saving_progress.emit(int(float(current_progress) / total_maps * 100))
+		print("NoiseMapSaver: Saved Water Refraction Perlin (Progress: ", current_progress, "/", total_maps, ")")
+	
+	await _yield_to_main_loop()
+	
+	# Water Normal Perlin (from AssetMaps)
+	print("NoiseMapSaver: Generating Water Normal Perlin...")
+	var perlin_water_normal = Helpers._noise_to_texture(size, NoiseTexture2D.new(), asset_maps.water_normal_perlin)
+	success = await _wait_for_texture(perlin_water_normal, "Water Normal Perlin")
+	if not success or not is_saving:
+		return current_progress
+	
+	image = perlin_water_normal.get_image()
+	if image:
+		image.save_png(perlin_dir + "/WaterNormal_Perlin.png")
+		current_progress += 1
+		saving_progress.emit(int(float(current_progress) / total_maps * 100))
+		print("NoiseMapSaver: Saved Water Normal Perlin (Progress: ", current_progress, "/", total_maps, ")")
+	
 	print("NoiseMapSaver: Finished saving Perlin maps")
 	return current_progress
 
-func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String) -> void:
-	# Create Simplex subdirectory
-	var simplex_dir = base_dir + "/Simplex"
-	var error = DirAccess.make_dir_recursive_absolute(simplex_dir)
-	if error != OK:
-		var error_msg = "NoiseMapSaver: Failed to create Simplex directory"
-		print(error_msg)
-		saving_failed.emit(error_msg)
-		is_saving = false
-		return
-	
+func _save_simplex_maps(current_progress: int, total_maps: int, simplex_dir: String) -> int:
 	print("NoiseMapSaver: Saving Simplex maps to: ", simplex_dir)
 	
 	await _yield_to_main_loop()
@@ -177,7 +246,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 	var simplex_base_height = Helpers._noise_to_texture(size, SimplexTexture.new(), elevation_data.base_simplex)
 	var success = await _wait_for_texture(simplex_base_height, "Base Height Simplex")
 	if not success or not is_saving:
-		return
+		return current_progress
 	
 	var image = simplex_base_height.get_image()
 	if image:
@@ -193,7 +262,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 	var simplex_erosion = Helpers._noise_to_texture(size, SimplexTexture.new(), elevation_data.erosion_simplex)
 	success = await _wait_for_texture(simplex_erosion, "Erosion Simplex")
 	if not success or not is_saving:
-		return
+		return current_progress
 	
 	image = simplex_erosion.get_image()
 	if image:
@@ -209,7 +278,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 	var simplex_temperature = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.temperature_simplex)
 	success = await _wait_for_texture(simplex_temperature, "Temperature Simplex")
 	if not success or not is_saving:
-		return
+		return current_progress
 	
 	image = simplex_temperature.get_image()
 	if image:
@@ -225,7 +294,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 	var simplex_precipitation = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.precipitation_simplex)
 	success = await _wait_for_texture(simplex_precipitation, "Precipitation Simplex")
 	if not success or not is_saving:
-		return
+		return current_progress
 	
 	image = simplex_precipitation.get_image()
 	if image:
@@ -241,7 +310,7 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 	var simplex_humidity = Helpers._noise_to_texture(size, SimplexTexture.new(), climate_data.humidity_simplex)
 	success = await _wait_for_texture(simplex_humidity, "Humidity Simplex")
 	if not success or not is_saving:
-		return
+		return current_progress
 	
 	image = simplex_humidity.get_image()
 	if image:
@@ -250,7 +319,40 @@ func _save_simplex_maps(current_progress: int, total_maps: int, base_dir: String
 		saving_progress.emit(int(float(current_progress) / total_maps * 100))
 		print("NoiseMapSaver: Saved Humidity Simplex (Progress: ", current_progress, "/", total_maps, ")")
 	
+	await _yield_to_main_loop()
+	
+	# Water Refraction Simplex (from AssetMaps)
+	print("NoiseMapSaver: Generating Water Refraction Simplex...")
+	var simplex_water_refraction = Helpers._noise_to_texture(size, SimplexTexture.new(), asset_maps.water_refraction_simplex)
+	success = await _wait_for_texture(simplex_water_refraction, "Water Refraction Simplex")
+	if not success or not is_saving:
+		return current_progress
+	
+	image = simplex_water_refraction.get_image()
+	if image:
+		image.save_png(simplex_dir + "/WaterRefraction_Simplex.png")
+		current_progress += 1
+		saving_progress.emit(int(float(current_progress) / total_maps * 100))
+		print("NoiseMapSaver: Saved Water Refraction Simplex (Progress: ", current_progress, "/", total_maps, ")")
+	
+	await _yield_to_main_loop()
+	
+	# Water Normal Simplex (from AssetMaps)
+	print("NoiseMapSaver: Generating Water Normal Simplex...")
+	var simplex_water_normal = Helpers._noise_to_texture(size, SimplexTexture.new(), asset_maps.water_normal_simplex)
+	success = await _wait_for_texture(simplex_water_normal, "Water Normal Simplex")
+	if not success or not is_saving:
+		return current_progress
+	
+	image = simplex_water_normal.get_image()
+	if image:
+		image.save_png(simplex_dir + "/WaterNormal_Simplex.png")
+		current_progress += 1
+		saving_progress.emit(int(float(current_progress) / total_maps * 100))
+		print("NoiseMapSaver: Saved Water Normal Simplex (Progress: ", current_progress, "/", total_maps, ")")
+	
 	print("NoiseMapSaver: Finished saving Simplex maps")
+	return current_progress
 
 func _wait_for_texture(texture: Texture2D, texture_name: String) -> bool:
 	if texture == null:

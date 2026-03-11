@@ -49,14 +49,34 @@ var mesh: ArrayMesh
 var execution_times = {}
 
 func _ready() -> void:
+	print("Terrain _ready() started")
 	print("Terrain generating with noise: %d" % Config.noise_type)
+	
+	# Check if RealTimeLogger autoload exists
+	print("RealTimeLogger autoload exists: ", Logger != null)
+	if Logger:
+		print("Logger class: ", Logger.get_class())
+	
 	terrain = $MeshInstance3D
 	mesh = ArrayMesh.new()
 	terrain.mesh = mesh
 	await generate_terrain_async()
-	update_water()
 	await prop_scatterer.test_biome_scatter()
-	#Monitor.start_logging()
+	
+	print("Terrain generation complete, waiting frames before starting logger...")
+	await get_tree().process_frame  # Wait one frame
+	print("Frame 1 passed")
+	await get_tree().process_frame  # Wait another frame to ensure Monitor is ready
+	print("Frame 2 passed")
+	
+	# Use the autoloaded instance, don't create a new one
+	if Logger:
+		print("Calling Logger.start_logging()")
+		Logger.start_logging()
+	else:
+		print("ERROR: Logger autoload not found!")
+	
+	print("Terrain _ready() completed")
 
 func generate_terrain_async():
 	var start_time = Time.get_ticks_msec()
@@ -98,7 +118,7 @@ func generate_terrain_async():
 			var erosion_value := erosion_noise.get_noise_2d(world_x, world_z) as float
 			
 			if Config.noise_type != 0:
-				base_value = base_value * 2.5  # empirical adjustment
+				base_value = base_value * 2.1  # empirical adjustment
 			else:
 				base_value = base_value * 1.4
 			var height = combine_terrain(base_value, erosion_value, world_x, world_z, amplitude)
@@ -160,7 +180,7 @@ func generate_terrain_async():
 	create_collision()
 	execution_times["collision_creation"] = Time.get_ticks_msec() - collision_start
 	
-	# Water update (will be called separately, but we'll log it there)
+	await update_water()
 	
 	# Complete
 	execution_times["TOTAL"] = Time.get_ticks_msec() - start_time
@@ -316,7 +336,6 @@ func regenerate():
 	print("Regenerating terrain with method: ", CombinationMethod.keys()[combination_method])
 	terrain_progress.emit(0, "Regenerating terrain")
 	await generate_terrain_async()
-	update_water()
 	prop_scatterer.test_biome_scatter()
 
 

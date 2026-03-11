@@ -35,6 +35,26 @@ layout_mode = 2
 text = "Total Load:"
 label_settings = ExtResource("3_cnxog")
 
+[node name="CloudsTracker" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 684.0
+offset_top = 24.0
+offset_right = 882.0
+offset_bottom = 107.0
+
+[node name="ProgressLabel" type="Label" parent="CloudsTracker"]
+layout_mode = 2
+text = "Clouds"
+label_settings = ExtResource("3_cnxog")
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="CloudsTracker"]
+layout_mode = 2
+
+[node name="ProgressTiming" type="Label" parent="CloudsTracker"]
+layout_mode = 2
+label_settings = ExtResource("3_cnxog")
+
 [node name="TerrainTracker" type="VBoxContainer" parent="."]
 layout_mode = 0
 offset_left = 26.0

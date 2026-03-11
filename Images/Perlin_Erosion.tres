@@ -2,8 +2,8 @@
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_qyelv"]
 noise_type = 3
-seed = 4
-frequency = 0.0033
+seed = 69
+frequency = 0.0021
 fractal_type = 3
 domain_warp_enabled = true
 domain_warp_type = 2

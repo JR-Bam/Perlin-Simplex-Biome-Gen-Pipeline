@@ -4,9 +4,10 @@
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_bgtm2"]
 noise_type = 3
+seed = 69
 
 [sub_resource type="Simplex" id="Simplex_wft1t"]
-seed = 4
+seed = 88
 fractal_type = 1
 fractal_octaves = 5
 fractal_lacunarity = 2.0
@@ -14,12 +15,12 @@ fractal_gain = 0.5
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_dmrxr"]
 noise_type = 3
-seed = 3
+seed = 69
 frequency = 0.02
 fractal_type = 0
 
 [sub_resource type="Simplex" id="Simplex_uoyxc"]
-seed = 3
+seed = 88
 frequency = 0.02
 
 [resource]
