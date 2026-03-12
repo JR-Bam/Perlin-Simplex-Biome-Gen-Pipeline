@@ -51,6 +51,13 @@ var execution_times = {}
 func _ready() -> void:
 	print("Terrain _ready() started")
 	print("Terrain generating with noise: %d" % Config.noise_type)
+
+	# Use the autoloaded instance, don't create a new one
+	if Logger:
+		print("Calling Logger.start_logging()")
+		Logger.start_logging()
+	else:
+		print("ERROR: Logger autoload not found!")
 	
 	# Check if RealTimeLogger autoload exists
 	print("RealTimeLogger autoload exists: ", Logger != null)
@@ -63,19 +70,10 @@ func _ready() -> void:
 	await generate_terrain_async()
 	await prop_scatterer.test_biome_scatter()
 	
-	print("Terrain generation complete, waiting frames before starting logger...")
-	await get_tree().process_frame  # Wait one frame
-	print("Frame 1 passed")
-	await get_tree().process_frame  # Wait another frame to ensure Monitor is ready
-	print("Frame 2 passed")
-	
-	# Use the autoloaded instance, don't create a new one
 	if Logger:
-		print("Calling Logger.start_logging()")
-		Logger.start_logging()
+		Logger.stop_logging()
 	else:
 		print("ERROR: Logger autoload not found!")
-	
 	print("Terrain _ready() completed")
 
 func generate_terrain_async():
