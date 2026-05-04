@@ -11,12 +11,15 @@ extends Control
 
 @onready var round_input: LineEdit = $CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer/RoundInput
 
+@onready var debug_button: CheckButton = $CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer/DebugButton
+
 var Config: WorldConfigResource = load("res://world_config.tres")
 
 
 func _ready():
 	start_button.pressed.connect(_on_start_pressed)
 	export_button.pressed.connect(_on_export_pressed)
+	debug_button.button_pressed = Config.debug
 
 func _on_start_pressed():
 	update_configs()
@@ -50,7 +53,7 @@ func update_configs():
 		2: Config.size = 5000
 	Config.seed = int(seed_input.text) if not seed_input.text.is_empty() and seed_input.text.is_valid_int() else 0
 	Config.round = int(round_input.text) if not round_input.text.is_empty() and round_input.text.is_valid_int() else null
-
+	Config.debug = debug_button.button_pressed
 func _on_save_progress(progress: int):
 	export_progress.value = progress
 	

@@ -1,4 +1,8 @@
 extends CharacterBody3D
+class_name Player
+
+# Add this signal
+signal biome_entered(biome_name: String, position: Vector3)
 
 @export var speed = 5.0
 @export var jump_force = 4.5
@@ -10,6 +14,9 @@ var camera: Camera3D
 # References to PropScatterer
 var prop_scatterer: PropScatterer
 @onready var Config: WorldConfigResource = preload("res://world_config.tres")
+
+# Track current biome for change detection
+var current_biome: String = ""
 
 func _ready():
 	camera = $Head/Camera3D
@@ -28,7 +35,11 @@ func _ready():
 		print("ERROR: Could not find PropScatterer node!")
 		return
 	
+	# Initialize current biome
+	current_biome = prop_scatterer.get_biome_at_position(global_position)
+	
 	print("=== PLAYER INITIALIZED ===")
+	print("Starting biome: ", current_biome)
 	print("All chunks are always loaded.")
 	print("LOD visibility_range_end handles distance culling:")
 	print("  - 0 to %.0f: Full detail" % prop_scatterer.lod_mid_distance)
@@ -47,9 +58,13 @@ func _input(event):
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		if event.keycode == KEY_P:
 			print_performance_stats()
+		# Add debug key to print current biome
+		if event.keycode == KEY_B:
+			print_current_biome()
 
 func _process(_delta):
-	pass
+	# Check biome every frame (you could also do this less frequently for performance)
+	check_biome_change()
 
 func _physics_process(delta):
 	# Gravity
@@ -73,6 +88,25 @@ func _physics_process(delta):
 	
 	move_and_slide()
 
+# Add this function to check for biome changes
+func check_biome_change():
+	if not prop_scatterer:
+		return
+	
+	var new_biome = prop_scatterer.get_biome_at_position(global_position)
+	
+	# If biome changed, emit signal
+	if new_biome != current_biome:
+		biome_entered.emit(new_biome, global_position)
+		print("Biome changed: ", current_biome, " -> ", new_biome, " at ", global_position)
+		current_biome = new_biome
+
+# Add debug function to print current biome
+func print_current_biome():
+	if prop_scatterer:
+		var biome = prop_scatterer.get_biome_at_position(global_position)
+		print("Current biome at ", global_position, ": ", biome)
+
 func print_performance_stats():
 	var lod_instances = get_tree().get_nodes_in_group("lod_instance")
 	var visible_count = 0
@@ -87,5 +121,6 @@ func print_performance_stats():
 	
 	print("\n=== PERFORMANCE STATS ===")
 	print("Camera position: ", camera_pos)
+	print("Current biome: ", current_biome)
 	print("Visible LOD instances: ", visible_count, " / ", lod_instances.size())
 	print("Total visible prop instances: ", total_instances)

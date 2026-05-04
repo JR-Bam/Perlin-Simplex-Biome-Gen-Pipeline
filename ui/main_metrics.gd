@@ -15,12 +15,15 @@ extends Control
 @onready var clouds_progress_bar: ProgressBar = $CloudsTracker/ProgressBar
 @onready var clouds_timing_label: Label = $CloudsTracker/ProgressTiming
 
+@onready var real_time_label: Label = $RealTime
+
 var load_start_time: float
 var main_scene_loaded_time: float
 var main_scene_instance: Node
 var terrain_node: Node
 var scatter_node: Node
 var clouds_node: CloudsController
+var player_node: Player
 
 const MAIN_SCENE_NAME = "res://main.tscn"
 
@@ -29,6 +32,7 @@ var terrain_complete: bool = false
 var scatter_complete: bool = false
 var clouds_complete: bool = false
 var export_saved: bool = false
+var current_biome: String = ""
 
 # Dictionary mapping original keys to readable names
 var column_name_mapping = {
@@ -77,8 +81,18 @@ func get_biome_column_name(biome: String, metric: String) -> String:
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	var Config: WorldConfigResource = load("res://world_config.tres")
+	
 	load_start_time = Time.get_ticks_msec()
 	main_scene_progress_bar.load(MAIN_SCENE_NAME)
+	
+	if Config.debug:
+		real_time_label.visible = false
+	else:
+		$MainSceneTracker.visible = false
+		$CloudsTracker.visible = false
+		$TerrainTracker.visible = false
+		$ScatterTracker.visible = false
 
 
 func _on_scene_loaded(path: String):
@@ -119,6 +133,9 @@ func _on_scene_loaded(path: String):
 		scatter_progress_bar.value = 100
 		scatter_complete = true
 	
+	player_node = main_scene_instance.get_node_or_null("Terrain/Player")
+	if player_node and player_node.has_signal("biome_entered"):
+		player_node.biome_entered.connect(_on_biome_changed)
 	# Check if all are already complete
 	check_all_complete()
 
@@ -174,6 +191,9 @@ func _on_clouds_progress(percent: int):
 		clouds_timing_label.text = timing_text
 		
 		check_all_complete()
+
+func _on_biome_changed(biome_name: String, pos: Vector3):
+	current_biome = biome_name
 
 func check_all_complete():
 	# Check if all components are complete and export hasn't been saved yet
@@ -409,3 +429,7 @@ func export_execution_times_as_csv():
 		printerr("Error description: ", error_string(error))
 	
 	print("=== Export Complete ===")
+
+
+func _on_timer_timeout() -> void:
+	real_time_label.text = "FPS %d\nCurrent Biome: %s" % [Performance.get_monitor(Performance.TIME_FPS), current_biome]

@@ -8,6 +8,7 @@ class_name WorldConfigResource
 @export var blend_radius: float = 0.05
 @export var seed: int = 0
 @export var round: Variant = null
+@export var debug: bool = true
 
 # Biome Thresholds - Updated realistic configuration with ~10% gaps
 @export_group("Ocean Thresholds")

@@ -593,6 +593,49 @@ func is_selected_biome(x: float, z: float, normalized_elevation: float, threshol
 			hum >= h_min and hum <= h_max and 
 			precip >= p_min and precip <= p_max)
 
+# Add this function to PropScatterer class
+func get_biome_at_position(world_position: Vector3) -> String:
+	"""Returns the biome name at the given world position"""
+	if not temp_img or not hum_img or not precip_img or not terrain_mesh or not water_mesh:
+		return "unknown"
+	
+	# Calculate normalized UV coordinates
+	var terrain_half_size = terrain_size / 2.0
+	var uv_x = (world_position.x + terrain_half_size) / terrain_size
+	var uv_z = (world_position.z + terrain_half_size) / terrain_size
+	
+	# Clamp to valid range
+	uv_x = clamp(uv_x, 0.0, 1.0)
+	uv_z = clamp(uv_z, 0.0, 1.0)
+	var uv = Vector2(uv_x, uv_z)
+	
+	# Sample height
+	var height = sample_terrain_height(world_position.x, world_position.z)
+	var water_top = water_mesh.global_position.y - 2
+	var normalized_height = inverse_lerp(water_top, water_top + 200.0, height)
+	normalized_height = clamp(normalized_height, 0.0, 1.0)
+	
+	# Sample climate data
+	var temp = temp_img.get_pixel(int(uv_x * temp_img.get_width()), int(uv_z * temp_img.get_height())).r
+	var hum = hum_img.get_pixel(int(uv_x * hum_img.get_width()), int(uv_z * hum_img.get_height())).r
+	var precip = precip_img.get_pixel(int(uv_x * precip_img.get_width()), int(uv_z * precip_img.get_height())).r
+	
+	# Check each biome
+	for biome_name in biome_thresholds:
+		var thresholds = biome_thresholds[biome_name]
+		
+		# Check elevation
+		if normalized_height < thresholds["e_min"] or normalized_height > thresholds["e_max"]:
+			continue
+		
+		# Check climate
+		if (temp >= thresholds["t_min"] and temp <= thresholds["t_max"] and
+			hum >= thresholds["h_min"] and hum <= thresholds["h_max"] and
+			precip >= thresholds["p_min"] and precip <= thresholds["p_max"]):
+			return biome_name
+	
+	return "unknown"
+
 func sample_terrain_height(x: float, z: float) -> float:
 	if not is_inside_tree():
 		return 0.0

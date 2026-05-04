@@ -42,7 +42,7 @@ theme_override_constants/margin_bottom = 50
 
 [node name="Label" type="Label" parent="CenterContainer/VBoxContainer/MarginContainer"]
 layout_mode = 2
-text = "Terrain Generator
+text = "World Generator
 "
 label_settings = SubResource("LabelSettings_qxc2d")
 horizontal_alignment = 1
@@ -97,6 +97,11 @@ placeholder_text = "Round"
 alignment = 1
 virtual_keyboard_type = 2
 clear_button_enabled = true
+
+[node name="DebugButton" type="CheckButton" parent="CenterContainer/VBoxContainer/MarginContainer3/HBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "Debug"
 
 [node name="MarginContainer4" type="MarginContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2

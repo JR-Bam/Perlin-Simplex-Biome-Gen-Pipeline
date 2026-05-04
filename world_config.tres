@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3 uid="uid://djsmspg8flboh"]
+[gd_resource type="Resource" script_class="WorldConfigResource" load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_wurno"]
 
@@ -9,8 +9,9 @@ subdivisions = 128
 size = 1000
 amplitude = 70
 blend_radius = 0.1
-seed = 1
-round = 1
+seed = 5
+round = 78
+debug = false
 ocean_e_min = 0.0
 ocean_e_max = 0.25
 ocean_t_min = 0.0
